@@ -19,10 +19,44 @@
 ```json
 {
   "name": "김개발",
-  "career_summary": "3년차 백엔드 개발자로 Spring Boot 기반 마이크로서비스 개발 경험",
-  "job_roles": ["백엔드 API 개발", "마이크로서비스 아키텍처 설계"],
-  "tech_skills": ["Java", "Spring Boot", "AWS", "Docker"],
-  "years_experience": 3
+  "summary": "3년차 백엔드 개발자로 Spring Boot 기반 마이크로서비스 개발 경험",
+  "contact_info": {
+    "email": "kim.dev@example.com",
+    "github": "https://github.com/kimdev",
+    "phone": "010-1234-5678"
+  },
+  "work_experiences": [
+    {
+      "company": "테크스타트업",
+      "position": "백엔드 개발자",
+      "duration": "2022.01 ~ 현재",
+      "project_name": "커머스 플랫폼 API 개발",
+      "tech_stack": ["Java", "Spring Boot", "MySQL", "Redis", "AWS"],
+      "achievements": [
+        "MSA 기반 주문/결제 시스템 설계 및 구현",
+        "Redis 캐싱으로 API 응답 속도 50% 개선"
+      ]
+    }
+  ],
+  "personal_projects": [
+    {
+      "name": "실시간 채팅 서비스",
+      "description": "WebSocket 기반 실시간 채팅 플랫폼",
+      "tech_stack": ["Spring Boot", "WebSocket", "PostgreSQL", "Docker"],
+      "key_achievements": [
+        "동시 접속자 1000명 처리 가능한 채팅 시스템 구현",
+        "Docker 컨테이너화로 배포 자동화"
+      ]
+    }
+  ],
+  "technical_skills": {
+    "programming_languages": ["Java", "Python"],
+    "frameworks": ["Spring Boot", "Spring Security"],
+    "databases": ["MySQL", "PostgreSQL", "Redis"],
+    "cloud_platforms": ["AWS EC2", "AWS RDS"],
+    "devops_tools": ["Docker", "GitHub Actions"]
+  },
+  "total_experience_months": 36
 }
 ```
 
