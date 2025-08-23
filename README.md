@@ -48,6 +48,19 @@
 
 ![Architecture](Architecture.png)
 
+### 도메인 설정
+
+#### **개발 환경 (현재 설정)**
+- **API Gateway 주소**: `http://api.localhost`
+- **Hosts 파일 설정 필요**: `/etc/hosts`에 `127.0.0.1 api.localhost` 추가
+- api.localhost는 개발을 위한 설정이기 때문에 추후 도메인 연결이 필요합니다. 
+- **서비스 접근**:
+  - Resume API: http://api.localhost/api/v1/resumes/docs
+  - Interview API: http://api.localhost/api/v1/interview/docs  
+  - Learning API: http://api.localhost/api/v1/learning/docs
+  - Traefik Dashboard: http://localhost:8080
+
+
 ### 아키텍처 구성 요소
 
 ####  **마이크로서비스 (FastAPI)**
@@ -209,17 +222,17 @@ def test_learning_path_generation():
     assert response.status_code == 200
 ```
 
-## LLM 모델 선정 및 전략
+## 선정된 llm 모델 및 전략
 
 ### 다중 모델 지원 현황
 
 #### 구현된 LLM Provider들:
 
-| Provider | 모델명 | 특징 | 토큰당 가격 | 용도 |
-|----------|--------|------|-------------|------|
-| **OpenAI** | `gpt-3.5-turbo` | 빠른 응답, 일관성 있는 품질 | $0.0015/1K tokens | 기본 모델 |
-| **Claude** | `claude-3-5-sonnet-20241022` | 창의적이고 상세한 응답 | $0.003/1K tokens | 고품질 응답 |
-| **Gemini** | `gemini-1.5-flash` | 무료, 빠른 처리 | 무료 | 비용 최적화 |
+| Provider | 모델명 | 특징 | 토큰당 가격 | 
+|----------|--------|------|-------------|
+| **OpenAI** | `gpt-4.1` | 빠른 응답, 일관성 있는 품질 | $0.0015/1K tokens | 
+| **Claude** | `claude-3-5-sonnet-20241022` | 창의적이고 상세한 응답 | $0.003/1K tokens | 
+| **Gemini** | `gemini-1.5-flash` | 무료, 빠른 처리 | 무료 | 
 
 #### 한 이력서당 예상 비용:
 - **면접 질문 생성**: ~500 토큰 사용
@@ -233,28 +246,39 @@ def test_learning_path_generation():
 
 ### 우선순위 및 폴백 전략
 
-#### 현재 구현된 폴백 로직:
+#### 구현된 LLM Registry 시스템:
 ```python
-# 우선순위: OpenAI → Claude → Gemini
-preferred_order = ["openai", "claude", "gemini"]
+# backend/shared/llm/registry.py 
+class LLMRegistry:
+    def register(self, name: str, client_class: Type[LLMClient])
+    def create_client(self, name: str) -> Optional[LLMClient]
+    def get_client(self, name: str) -> Optional[LLMClient]
+    def get_client_with_fallback(self) -> Optional[LLMClient]
+    def get_available_clients(self) -> List[str]
 
-# 폴백 시나리오:
-1. 선택된 Provider 시도
-2. 실패 시 OpenAI로 폴백
-3. OpenAI 실패 시 Claude 시도
-4. 모든 Provider 실패 시 에러 반환
+registry = LLMRegistry()
+preferred_order = ["openai", "claude", "gemini"]
 ```
 
-#### 확장 가능한 설계:
-- **Provider Registry**: 새로운 LLM 추가 시 최소 코드 변경
-- **설정 기반**: 환경변수로 모델별 파라미터 조정
-- **모니터링**: 각 Provider별 성공률 및 응답 시간 추적
+#### 폴백 시나리오
+1. **선택된 Provider 시도** → 사용자 지정 LLM으로 먼저 시도
+2. **자동 폴백 체인** → 실패 시 OpenAI → Claude → Gemini 순서로 시도
+3. **모든 Provider 실패** → 명확한 에러 메시지와 함께 HTTP 500 반환
+4. **실시간 모니터링** → 각 Provider별 성공률 및 응답시간 로깅
 
-### LangChain 활용
-- **추상화**: 다양한 LLM Provider 통합 인터페이스
-- **프롬프트 템플릿**: 재사용 가능한 프롬프트 관리
-- **스트리밍**: 실시간 응답 스트리밍 지원 (구현 완료)
-- **메모리**: 향후 대화 컨텍스트 관리 확장
+#### 모델 관리 
+- **Provider Registry**: 새로운 LLM 추가 시 최소 코드 변경 (현재 OpenAI, Claude, Gemini 운영)
+- **설정 기반**: 환경변수로 모델별 파라미터 조정 (API키, 온도, 토큰수, 타임아웃)
+- **추상화 계층**: LLMClient 베이스 클래스로 일관된 인터페이스 제공
+-  **실시간 폴백**: Provider 장애 시 1초 내 자동 전환
+
+
+#### LangChain 활용
+- **추상화**: 다양한 LLM Provider 통합 인터페이스 (OpenAI, Claude, Gemini)
+- **메시지 체인**: SystemMessage + HumanMessage로 구조화된 프롬프트
+- **스트리밍**: 실시간 응답 스트리밍 지원 (`ainvoke`, `astream` 메소드)
+- **에러 핸들링**: Provider별 예외 처리 및 자동 재시도
+- **비동기 처리**: async/await 패턴으로 동시 처리 최적화
 
 ---
 
@@ -288,23 +312,36 @@ preferred_order = ["openai", "claude", "gemini"]
 3. 각 질문은 카테고리(기술/경험/문제해결/인성)와 난이도(초급/중급/고급) 포함
 ```
 
-### 향후 프롬프팅 최적화 방향:
+### 구현된 프롬프팅 최적화:
 
-#### 1. **Few-Shot Learning**
-- 우수 질문 예시를 프롬프트에 포함
-- 직무별 템플릿 예시 제공
+#### 1. **✅ Few-Shot Learning (Interview Service)**
+- **구현 완료**: 우수 질문 예시를 프롬프트에 포함 (3년차, 1년차 개발자 예시)
+- **경력별 가이드라인**: 0-2년, 3-5년, 6년+ 경력별 맞춤 질문 전략
+- **피해야 할 질문 유형**: 명시적인 안티 패턴 가이드라인 제공
 
-#### 2. **Chain-of-Thought**
+#### 2. **✅ 역할 기반 프롬프팅 (구현 완료)**
+- **Interview Service**: "경험이 풍부한 HR 전문가이자 기술 면접관" 역할
+- **Learning Service**: "경험이 풍부한 커리어 코치이자 기술 멘토" 역할
+- **구체적 페르소나**: 각 서비스별 전문가 관점 적용
+
+#### 3. **✅ 구조화된 출력 (JSON Schema)**
+- **일관된 응답 형식**: 카테고리, 난이도, 우선순위 등 메타데이터 포함
+- **검증 로직**: JSON 파싱 오류 및 빈 응답 처리
+- **코드 블록 처리**: ```json``` 마크다운 블록 자동 파싱
+
+### 진행 중인 프롬프팅 개선:
+
+#### 🔄 **Chain-of-Thought (진행 예정)**
 - 질문 생성 과정의 추론 단계 명시
 - "왜 이 질문이 중요한가" 설명 포함
 
-#### 3. **역할 기반 프롬프팅**
-- 면접관, HR 전문가, 시니어 개발자 등 다양한 관점
-- 기업 문화와 포지션에 맞는 질문 스타일
+#### 🔄 **동적 난이도 조정 (진행 예정)**
+- 경력 연수별 자동 난이도 조정 시스템
+- 기술 스택 복잡도 기반 질문 깊이 조절
 
-#### 4. **동적 프롬프트 조정**
-- 사용자 피드백 기반 프롬프트 최적화
+#### 🔄 **품질 검증 로직 (진행 예정)**
 - A/B 테스트를 통한 프롬프트 성능 비교
+- 사용자 피드백 기반 프롬프트 최적화
 
 ---
 
