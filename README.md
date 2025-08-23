@@ -209,7 +209,7 @@ def test_learning_path_generation():
     assert response.status_code == 200
 ```
 
-## 🤖 LLM 모델 선정 및 전략
+## LLM 모델 선정 및 전략
 
 ### 다중 모델 지원 현황
 
@@ -258,7 +258,7 @@ preferred_order = ["openai", "claude", "gemini"]
 
 ---
 
-## 🎯 프롬프팅 전략
+## 프롬프팅 전략
 
 ### 목표: 개인 맞춤형의 특징 살리기
 
@@ -308,7 +308,8 @@ preferred_order = ["openai", "claude", "gemini"]
 
 ---
 
-## 🛠️ 코드 일관성과 협업을 위한 AI 활용
+## 코드 일관성과 협업을 위한 AI 활용
+
 #### 규칙 파일 위치:
 - `backend/.cursor/rules/`: Cursor IDE 규칙
 - 향후 추가: `.claude/setting.json`, `copilot-instructions.md`
@@ -355,7 +356,7 @@ preferred_order = ["openai", "claude", "gemini"]
 ```
 ---
 
-## 🚀 추후 확장성을 위한 고려사항
+## 추후 확장성을 위한 고려사항
 
 ### 1. 비동기 처리 최적화 (Python GIL 해결)
 #### 현재 상황:
@@ -409,10 +410,10 @@ batch_requests = [
 ```python
 # 지식 베이스 구축
 Knowledge Base:
-├── 📚 면접 질문 데이터베이스 (10,000+ 실제 면접 질문)
-├── 🎯 학습 로드맵 데이터베이스 (직무별 커리어 패스)
-├── 📊 기업별 면접 스타일 (네이버, 카카오, 쿠팡 등)
-└── 📈 최신 기술 트렌드 (Stack Overflow, GitHub 등)
+├── 면접 질문 데이터베이스 (10,000+ 실제 면접 질문)
+├── 학습 로드맵 데이터베이스 (직무별 커리어 패스)
+├── 기업별 면접 스타일 
+└── 최신 기술 트렌드 (Stack Overflow, GitHub 등)
 
 검색 → 컨텍스트 제공 → LLM 생성 → 검증
 ```
