@@ -154,9 +154,8 @@ def test_generate_interview_questions():
     # Given: 유효한 이력서 데이터가 주어지고
     resume_data = {"name": "김개발", "tech_skills": ["Python", "FastAPI"]}
     
-    # When: 면접 질문 생성을 요청하면
-    response = client.post(f"/interview/{unique_key}/questions", 
-                          params={"provider": "openai"})
+    # When: 면접 질문 생성을 요청하면 (Gemini 기본 사용)
+    response = client.post(f"/interview/{unique_key}/questions")
     
     # Then: 5개의 면접 질문이 생성된다
     assert response.status_code == 200
@@ -168,22 +167,24 @@ def test_generate_interview_questions():
 다양한 시나리오를 효율적으로 테스트:
 
 ```python
-@pytest.mark.parametrize("provider,expected_model,status_code", [
-    ("openai", "gpt-3.5-turbo", 200),
-    ("claude", "claude-3-5-sonnet-20241022", 200),
-    ("gemini", "gemini-1.5-flash", 200),
-    ("invalid", None, 400),
+@pytest.mark.parametrize("unique_key,resume_type,expected_questions", [
+    ("test_junior", "신입개발자", 5),
+    ("test_senior", "시니어개발자", 5),
+    ("test_fullstack", "풀스택개발자", 5),
+    ("invalid_key", "존재하지_않는_키", None),
 ])
-def test_llm_provider_selection(provider, expected_model, status_code):
-    # Given: 다양한 LLM Provider가 주어지고
-    # When: 면접 질문 생성을 요청하면
-    response = client.post(f"/interview/{unique_key}/questions", 
-                          params={"provider": provider})
+def test_resume_based_question_generation(unique_key, resume_type, expected_questions):
+    # Given: 다양한 유형의 이력서가 주어지고
+    # When: 면접 질문 생성을 요청하면 (Gemini 기본 사용)
+    response = client.post(f"/interview/{unique_key}/questions")
     
     # Then: 예상된 결과를 반환한다
-    assert response.status_code == status_code
-    if status_code == 200:
-        assert response.json()["model"] == expected_model
+    if expected_questions:
+        assert response.status_code == 200
+        assert len(response.json()["questions"]) == expected_questions
+        assert response.json()["provider"] == "gemini"
+    else:
+        assert response.status_code == 404
 ```
 
 #### **Flaky Test 대응 전략**
@@ -196,6 +197,7 @@ def test_llm_api_call():
     """LLM API 호출 테스트 - 네트워크 이슈로 인한 실패 시 재시도"""
     response = client.post("/interview/test_user/questions")
     assert response.status_code == 200
+    assert response.json()["provider"] in ["gemini", "openai", "claude"]  # 폴백 허용
 ```
 
 ##### **병렬 실행 (Parallel)**
@@ -228,11 +230,11 @@ def test_learning_path_generation():
 
 #### 구현된 LLM Provider들:
 
-| Provider | 모델명 | 특징 | 토큰당 가격 | 
-|----------|--------|------|-------------|
-| **OpenAI** | `gpt-4.1` | 빠른 응답, 일관성 있는 품질 | $0.0015/1K tokens | 
-| **Claude** | `claude-3-5-sonnet-20241022` | 창의적이고 상세한 응답 | $0.003/1K tokens | 
-| **Gemini** | `gemini-1.5-flash` | 무료, 빠른 처리 | 무료 | 
+| Provider | 모델명 | 특징 | 토큰당 가격 | 기본 모델 |
+|----------|--------|------|-------------|----------|
+| **Gemini** ⭐ | `gemini-2.5-flash` | 무료, 빠른 처리, 기본 모델 | 무료 | **기본** |
+| **OpenAI** | `gpt-4.1` | 빠른 응답, 일관성 있는 품질 | $0.0015/1K tokens | 폴백 1순위 |
+| **Claude** | `claude-3-5-sonnet-20241022` | 창의적이고 상세한 응답 | $0.003/1K tokens | 폴백 2순위 | 
 
 #### 한 이력서당 예상 비용:
 - **면접 질문 생성**: ~500 토큰 사용
@@ -257,12 +259,12 @@ class LLMRegistry:
     def get_available_clients(self) -> List[str]
 
 registry = LLMRegistry()
-preferred_order = ["openai", "claude", "gemini"]
+preferred_order = ["gemini", "openai", "claude"]
 ```
 
 #### 폴백 시나리오
-1. **선택된 Provider 시도** → 사용자 지정 LLM으로 먼저 시도
-2. **자동 폴백 체인** → 실패 시 OpenAI → Claude → Gemini 순서로 시도
+1. **기본 모델 (Gemini)** → 무료 모델로 먼저 시도
+2. **자동 폴백 체인** → 실패 시 Gemini → OpenAI → Claude 순서로 시도
 3. **모든 Provider 실패** → 명확한 에러 메시지와 함께 HTTP 500 반환
 4. **실시간 모니터링** → 각 Provider별 성공률 및 응답시간 로깅
 
