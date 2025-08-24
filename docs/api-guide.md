@@ -177,6 +177,19 @@ curl -X POST "http://api.localhost/api/v1/learning/김개발_1/learning-path"
 127.0.0.1 api.localhost
 ```
 
+#### **서브도메인 설정**
+- **API Gateway 주소**: `http://api.localhost`
+- **Hosts 파일 설정 필요**: `/etc/hosts`에 `127.0.0.1 api.localhost` 추가
+- api.localhost는 개발을 위한 설정이기 때문에 추후 도메인 연결이 필요합니다. 
+- **서비스 접근**:
+  - Resume API: http://api.localhost/api/v1/resumes/docs
+  - Interview API: http://api.localhost/api/v1/interview/docs  
+  - Learning API: http://api.localhost/api/v1/learning/docs
+  - 통합 테스트 페이지: http://api.localhost/test
+  - Traefik Dashboard: http://localhost:8080
+
+
+
 ### 2. 서비스 시작
 ```bash
 docker compose up -d
