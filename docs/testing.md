@@ -96,6 +96,119 @@ def test_learning_path_generation():
 
 </details>
 
+### **Celery 파이프라인 테스트**
+
+<details>
+<summary>Celery 파이프라인 테스트 예시</summary>
+
+#### **기본 설정 및 픽스처**
+```python
+@pytest.fixture
+def mock_celery_task():
+    with patch('celery.Task') as mock:
+        mock.return_value.delay.return_value = AsyncResult('test-id')
+        yield mock
+
+@pytest.fixture
+def mock_redis():
+    with patch('redis.Redis') as mock:
+        mock.return_value.get.return_value = b'{"status": "completed"}'
+        yield mock
+
+@pytest.fixture
+def mock_rabbitmq():
+    with patch('kombu.Connection') as mock:
+        yield mock
+```
+
+#### **면접 질문 생성 파이프라인**
+```python
+@pytest.mark.asyncio
+async def test_interview_pipeline(mock_celery_task, mock_redis):
+    """면접 질문 생성 파이프라인 테스트"""
+    # Given: 이력서 데이터가 주어지고
+    resume_data = {
+        "name": "테스트개발자",
+        "technical_skills": ["Python", "FastAPI"]
+    }
+    
+    # When: 태스크를 실행하면
+    result = generate_interview_questions.delay(resume_data)
+    
+    # Then: 태스크가 큐에 들어가고 결과가 저장된다
+    assert result.id == 'test-id'
+    stored_result = mock_redis.return_value.get(
+        f'interview:result:{result.id}'
+    )
+    assert stored_result is not None
+```
+
+#### **태스크 체인 테스트**
+```python
+def test_chain_tasks(mock_celery_task):
+    """태스크 체인 테스트"""
+    # Given: 태스크 체인이 구성되고
+    task_chain = chain(
+        preprocess_resume.s({"name": "테스트"}),
+        generate_interview_questions.s(),
+        post_process_questions.s()
+    )
+    
+    # When: 체인을 실행하면
+    result = task_chain.delay()
+    
+    # Then: 모든 태스크가 순차적으로 실행된다
+    assert result.id == 'test-id'
+    task = mock_celery_task.return_value
+    assert task.delay.call_count == 3
+```
+
+#### **태스크 진행 상황 추적**
+```python
+def test_task_progress_tracking(mock_redis):
+    """태스크 진행 상황 추적 테스트"""
+    # Given: 태스크 ID가 주어지고
+    task_id = 'test-progress-id'
+    
+    # When: 진행 상황을 업데이트하면
+    progress_data = {
+        "status": "in_progress",
+        "current_step": 2,
+        "total_steps": 5,
+        "message": "면접 질문 생성 중..."
+    }
+    mock_redis.return_value.set(
+        f'task:progress:{task_id}',
+        str(progress_data)
+    )
+    
+    # Then: Redis에 진행 상황이 저장된다
+    stored_progress = mock_redis.return_value.get(
+        f'task:progress:{task_id}'
+    )
+    assert stored_progress is not None
+```
+
+#### **에러 처리 및 재시도**
+```python
+@pytest.mark.asyncio
+async def test_error_handling(mock_celery_task, mock_redis):
+    """에러 처리 및 복구 테스트"""
+    # Given: 태스크가 실패하도록 설정
+    mock_celery_task.return_value.delay.side_effect = \
+        Exception("LLM API 오류")
+    
+    # When & Then: 에러가 발생하면 적절히 처리된다
+    with pytest.raises(Exception):
+        result = mock_celery_task.return_value.delay({"test": "data"})
+        error_data = mock_redis.return_value.get(
+            f'task:error:{result.id}'
+        )
+        assert b"LLM API 오류" in error_data
+```
+
+</details>
+
 ## 테스트 구조
 
 ### 디렉토리 구조
@@ -105,7 +218,8 @@ backend/tests/
 ├── pytest.ini                    # pytest 설정
 ├── unit/
 │   ├── test_basic_utils.py       # 기본 유틸리티 
-│   └── test_utils.py             # 고급 유틸리티
+│   ├── test_utils.py             # 고급 유틸리티
+│   └── test_celery_tasks.py      # Celery 태스크 테스트
 ├── interview-service/
 │   ├── test_interview_bdd.py     # BDD 패턴 테스트
 │   ├── test_interview_table_driven.py  # Table Driven 테스트
@@ -166,6 +280,7 @@ make test-resume
 make test-bdd           # Given-When-Then
 make test-flaky         # Flaky 테스트
 make test-parallel      # 병렬 실행
+make test-celery        # Celery 파이프라인 테스트
 
 # 유닛 테스트 (API 서버 불필요)
 pytest tests/unit/ -v

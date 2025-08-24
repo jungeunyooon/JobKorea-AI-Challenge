@@ -6,9 +6,13 @@ import json
 import re
 from shared.utils.logger import setup_logger
 from typing import Dict, Any, List, Union
-from config import settings
+try:
+    from config import settings
+    log_level = settings.log_level
+except ImportError:
+    log_level = "INFO"
 
-logger = setup_logger("shared-json-parser", settings.log_level)
+logger = setup_logger("shared-json-parser", log_level)
 
 
 def parse_llm_json_response(

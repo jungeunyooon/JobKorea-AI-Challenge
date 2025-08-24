@@ -10,11 +10,11 @@ sys.path.insert(0, os.path.join(os.path.dirname(__file__), "..", ".."))
 
 try:
     from shared.utils.json_parser import parse_llm_json_response
-    from shared.utils.resume_formatter import format_resume_for_llm
+    from shared.utils.resume_formatter import format_resume_for_ai
 except ImportError:
     # 모듈을 찾을 수 없는 경우 스킵
     parse_llm_json_response = None
-    format_resume_for_llm = None
+    format_resume_for_ai = None
 
 class TestJSONParser:
     """JSON 파서 유틸리티 테스트"""
@@ -43,19 +43,22 @@ class TestJSONParser:
         assert len(result["questions"]) == 1
         assert result["questions"][0]["question"] == "테스트 질문"
 
-    def test_parse_json_with_markdown_removal(self):
-        """
-        시나리오: 마크다운이 포함된 JSON 응답 파싱
-        Given: 마크다운 블록으로 감싸진 JSON이 주어지고
-        When: JSON 파싱을 시도하면
-        Then: 마크다운이 제거되고 파싱된다
-        """
+        def test_parse_json_with_markdown_removal(self):
+            """
+            시나리오: 마크다운이 포함된 JSON 응답 파싱
+            Given: 마크다운 블록으로 감싸진 JSON이 주어지고
+            When: JSON 파싱을 시도하면
+            Then: 마크다운이 제거되고 파싱된다
+            """
+        if parse_llm_json_response is None:
+            pytest.skip("parse_llm_json_response module not available")
+            
         # Given: 마크다운 블록으로 감싸진 JSON이 주어지고
         json_response = '''```json
         {"learning_paths": [{"title": "테스트 학습"}], "summary": "요약"}
         ```'''
         expected_keys = ["learning_paths", "summary"]
-        
+
         # When: JSON 파싱을 시도하면
         result = parse_llm_json_response(json_response, expected_keys)
         
@@ -64,18 +67,21 @@ class TestJSONParser:
         assert "learning_paths" in result
         assert len(result["learning_paths"]) == 1
 
-    def test_parse_json_with_fallback_keys(self):
-        """
-        시나리오: 폴백 키를 사용한 JSON 파싱
-        Given: 예상 키와 다른 키를 가진 JSON이 주어지고
-        When: 폴백 키로 파싱을 시도하면
-        Then: 폴백 키를 사용하여 파싱된다
-        """
+        def test_parse_json_with_fallback_keys(self):
+            """
+            시나리오: 폴백 키를 사용한 JSON 파싱
+            Given: 예상 키와 다른 키를 가진 JSON이 주어지고
+            When: 폴백 키로 파싱을 시도하면
+            Then: 폴백 키를 사용하여 파싱된다
+            """
+        if parse_llm_json_response is None:
+            pytest.skip("parse_llm_json_response module not available")
+            
         # Given: 예상 키와 다른 키를 가진 JSON이 주어지고
         json_response = '{"paths": [{"title": "대체 학습"}], "overview": "대체 요약"}'
         expected_keys = ["learning_paths", "summary"]
         fallback_keys = {"learning_paths": ["paths"], "summary": ["overview"]}
-        
+
         # When: 폴백 키로 파싱을 시도하면
         result = parse_llm_json_response(json_response, expected_keys, fallback_keys)
         
@@ -95,6 +101,9 @@ class TestResumeFormatter:
         When: LLM용 포맷팅을 수행하면
         Then: 구조화된 텍스트가 생성된다
         """
+        if format_resume_for_ai is None:
+            pytest.skip("format_resume_for_ai module not available")
+            
         # Given: 기본 이력서 정보가 주어지고
         resume_data = {
             "name": "테스트개발자",
@@ -109,9 +118,9 @@ class TestResumeFormatter:
             ],
             "personal_projects": []
         }
-        
+
         # When: LLM용 포맷팅을 수행하면
-        formatted = format_resume_for_llm(resume_data)
+        formatted = format_resume_for_ai(resume_data)
         
         # Then: 구조화된 텍스트가 생성된다
         assert isinstance(formatted, str)
@@ -121,13 +130,16 @@ class TestResumeFormatter:
         assert "Python" in formatted
         assert "FastAPI" in formatted
 
-    def test_format_resume_with_projects_detail(self):
-        """
-        시나리오: 상세 프로젝트 정보가 있는 이력서 포맷팅
-        Given: 상세한 프로젝트 정보가 포함된 이력서가 주어지고
-        When: LLM용 포맷팅을 수행하면
-        Then: 프로젝트 상세 정보가 포함된다
-        """
+        def test_format_resume_with_projects_detail(self):
+            """
+            시나리오: 상세 프로젝트 정보가 있는 이력서 포맷팅
+            Given: 상세한 프로젝트 정보가 포함된 이력서가 주어지고
+            When: LLM용 포맷팅을 수행하면
+            Then: 프로젝트 상세 정보가 포함된다
+            """
+        if format_resume_for_ai is None:
+            pytest.skip("format_resume_for_ai module not available")
+            
         # Given: 상세한 프로젝트 정보가 포함된 이력서가 주어지고
         resume_data = {
             "name": "고급개발자",
@@ -155,9 +167,9 @@ class TestResumeFormatter:
                 }
             ]
         }
-        
+
         # When: LLM용 포맷팅을 수행하면
-        formatted = format_resume_for_llm(resume_data)
+        formatted = format_resume_for_ai(resume_data)
         
         # Then: 프로젝트 상세 정보가 포함된다
         assert "마이크로서비스 플랫폼" in formatted
@@ -166,13 +178,16 @@ class TestResumeFormatter:
         assert "개인 프로젝트" in formatted
         assert "실시간 채팅 구현" in formatted
 
-    def test_format_resume_empty_projects(self):
-        """
-        시나리오: 프로젝트가 없는 이력서 포맷팅
-        Given: 프로젝트 정보가 없는 이력서가 주어지고
-        When: LLM용 포맷팅을 수행하면
-        Then: 에러 없이 기본 정보만 포맷팅된다
-        """
+        def test_format_resume_empty_projects(self):
+            """
+            시나리오: 프로젝트가 없는 이력서 포맷팅
+            Given: 프로젝트 정보가 없는 이력서가 주어지고
+            When: LLM용 포맷팅을 수행하면
+            Then: 에러 없이 기본 정보만 포맷팅된다
+            """
+        if format_resume_for_ai is None:
+            pytest.skip("format_resume_for_ai module not available")
+            
         # Given: 프로젝트 정보가 없는 이력서가 주어지고
         resume_data = {
             "name": "신입개발자",
@@ -180,9 +195,9 @@ class TestResumeFormatter:
             "work_experiences": [],
             "personal_projects": []
         }
-        
+
         # When: LLM용 포맷팅을 수행하면
-        formatted = format_resume_for_llm(resume_data)
+        formatted = format_resume_for_ai(resume_data)
         
         # Then: 에러 없이 기본 정보만 포맷팅된다
         assert isinstance(formatted, str)

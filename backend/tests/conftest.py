@@ -4,23 +4,23 @@
 import pytest
 import asyncio
 import httpx
+import os
+from pathlib import Path
 from typing import Generator
+from unittest.mock import MagicMock, patch
+from dotenv import load_dotenv
+from tests.test_config import TestAppSettings
 
-# API 기본 URL
-API_BASE_URL = "http://api.localhost/api/v1"
+@pytest.fixture(scope="session", autouse=True)
+def app_settings() -> TestAppSettings:
+    """Override application settings for testing"""
+    return TestAppSettings()
 
-@pytest.fixture(scope="session")
-def event_loop() -> Generator[asyncio.AbstractEventLoop, None, None]:
-    """세션 스코프 이벤트 루프"""
-    loop = asyncio.new_event_loop()
-    yield loop
-    loop.close()
-
-@pytest.fixture
+@pytest.fixture(scope="function")
 async def http_client():
     """HTTP 클라이언트 픽스처"""
     async with httpx.AsyncClient(
-        base_url=API_BASE_URL,
+        base_url="http://localhost:8000",
         timeout=30.0,
         follow_redirects=True
     ) as client:
@@ -79,6 +79,14 @@ def test_resume_data():
     }
 
 @pytest.fixture
+def mock_celery_app() -> Generator[MagicMock, None, None]:
+    """Mock Celery application"""
+    with pytest.MonkeyPatch.context() as mp:
+        mock_app = MagicMock()
+        mp.setattr("shared.celery_app.celery_app", mock_app)
+        yield mock_app
+
+@pytest.fixture
 def existing_resume_keys():
     """기존에 생성된 이력서 키들"""
     return [
@@ -88,9 +96,23 @@ def existing_resume_keys():
     ]
 
 @pytest.fixture
-def test_providers():
-    """테스트용 LLM 프로바이더 목록"""
-    return ["gemini", "openai", "claude"]
+def test_user_data():
+    """테스트용 사용자 데이터"""
+    return {
+        "current_skills": ["Python", "FastAPI"],
+        "target_position": "Backend Developer"
+    }
 
-# 플레이키 테스트 마커
-pytest.mark.flaky = pytest.mark.flaky(reruns=3, reruns_delay=2)
+@pytest.fixture
+def mock_redis():
+    """Mock Redis client"""
+    with patch('redis.Redis') as mock:
+        mock.return_value.get.return_value = b'{"status": "completed"}'
+        mock.return_value.set = MagicMock()
+        yield mock
+
+@pytest.fixture
+def mock_rabbitmq():
+    """Mock RabbitMQ connection"""
+    with patch('kombu.Connection') as mock:
+        yield mock
