@@ -258,20 +258,3 @@ TECH_COMPLEXITY_WEIGHT = {
 }
 ```
 
-## 추후 프롬프팅 개선 방향
-
-### **Quality Validation**
-- A/B 테스트를 통한 프롬프트 성능 비교
-- 사용자 피드백 기반 프롬프트 최적화
-
-### **Multi-turn Conversation**
-- 면접 질문 → 답변 → 추가 질문 플로우
-- 컨텍스트 유지한 연속 대화
-
-### **Domain-Specific Prompts**
-- 백엔드/프론트엔드/DevOps별 전문 프롬프트
-- 회사 규모별(스타트업/대기업) 맞춤 질문
-
-### **Real-time Adaptation**
-- 실시간 답변 분석 후 다음 질문 난이도 조정
-- 면접자 반응 기반 질문 스타일 변경
