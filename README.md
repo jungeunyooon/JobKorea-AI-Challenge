@@ -146,7 +146,7 @@
 #### 현재 구현된 마이크로서비스 구조:
 
 <details>
-<summary> MSA 폴더 구조</summary>
+<summary>MSA 폴더 구조</summary>
 
 ```
 📁 backend/
@@ -192,7 +192,7 @@
 #### **Given-When-Then 패턴**
 
 <details>
-<summary> BDD 테스트 예시</summary>
+<summary>BDD 테스트 예시</summary>
 
 ```python
 def test_generate_interview_questions():
@@ -214,7 +214,7 @@ def test_generate_interview_questions():
 다양한 시나리오를 효율적으로 테스트:
 
 <details>
-<summary 파라미터화된 테스트 예시</summary>
+<summary>파라미터화된 테스트 예시</summary>
 
 ```python
 @pytest.mark.parametrize("unique_key,resume_type,expected_questions", [
@@ -308,7 +308,7 @@ def test_learning_path_generation():
 #### 구현된 LLM Registry 시스템:
 
 <details>
-<summary> LLM Registry 구현 코드</summary>
+<summary>LLM Registry 구현 코드</summary>
 
 ```python
 # backend/shared/llm/registry.py 
@@ -361,7 +361,7 @@ preferred_order = ["gemini", "openai", "claude"]
 #### 면접 질문 프롬프트 예시:
 
 <details>
-<summary> 프롬프트 엔지니어링 예시</summary>
+<summary>프롬프트 엔지니어링 예시</summary>
 
 ```
 당신은 경험이 풍부한 기술 면접관입니다.
@@ -387,7 +387,7 @@ preferred_order = ["gemini", "openai", "claude"]
 #### 1. **다차원 면접 질문 생성 (Interview Service v3.0)**
 
 <details>
-<summary> 8가지 질문 유형 체계</summary>
+<summary>8가지 질문 유형 체계</summary>
 
 **구현된 질문 유형들:**
 1. **Implementation**: 구체적 구현 방법 (예: "WebSocket 연결 상태 관리를 어떻게 구현하셨나요?")
@@ -508,7 +508,7 @@ preferred_order = ["gemini", "openai", "claude"]
 #### `.claude/setting.json`
 
 <details>
-<summary> Claude AI 설정 파일</summary>
+<summary>Claude AI 설정 파일</summary>
 
 ```json
 {
@@ -532,7 +532,7 @@ preferred_order = ["gemini", "openai", "claude"]
 #### `copilot-instructions.md`
 
 <details>
-<summary> GitHub Copilot 가이드라인</summary>
+<summary>GitHub Copilot 가이드라인</summary>
 
 ```markdown
 # GitHub Copilot 사용 가이드라인
@@ -568,7 +568,7 @@ preferred_order = ["gemini", "openai", "claude"]
 #### 구현 계획:
 
 <details>
-<summary> PDF 처리 파이프라인</summary>
+<summary>PDF 처리 파이프라인</summary>
 
 ```python
 # PDF 처리 파이프라인
