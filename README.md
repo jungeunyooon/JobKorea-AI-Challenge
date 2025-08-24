@@ -550,7 +550,6 @@ preferred_order = ["gemini", "openai", "claude"]
 ```
 
 </details>
----
 
 ## 추후 확장성을 위한 고려사항
 
