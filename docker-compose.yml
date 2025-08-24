@@ -1,0 +1,112 @@
+services:
+  # Traefik API Gateway
+  traefik:
+    image: traefik:v3.0
+    command:
+      - --api.insecure=true  # Dashboard 개발용
+      - --providers.docker=true
+      - --providers.docker.exposedbydefault=false
+      - --entrypoints.web.address=:80
+      - --entrypoints.websecure.address=:443
+      - --log.level=INFO
+      - --accesslog=true
+    ports:
+      - "80:80"      # HTTP
+      - "443:443"    # HTTPS (향후 SSL)
+      - "8080:8080"  # Traefik Dashboard
+    volumes:
+      - /var/run/docker.sock:/var/run/docker.sock:ro
+    networks:
+      - app-network
+    labels:
+      - traefik.enable=true
+      # CORS 미들웨어 설정
+      - traefik.http.middlewares.cors-headers.headers.accesscontrolalloworiginlist=*
+      - traefik.http.middlewares.cors-headers.headers.accesscontrolallowmethods=GET,POST,PUT,DELETE,OPTIONS
+      - traefik.http.middlewares.cors-headers.headers.accesscontrolallowheaders=*
+      - traefik.http.middlewares.cors-headers.headers.accesscontrolmaxage=100
+      - traefik.http.middlewares.cors-headers.headers.addvaryheader=true
+
+  resume-service:
+    build: 
+      context: ./backend
+      dockerfile: resume-service/Dockerfile
+    environment:
+      - mongodb_url=mongodb://admin:password123@mongodb:27017/interview_coach?authSource=admin
+      - database_name=interview_coach
+    depends_on:
+      - mongodb
+      - traefik
+    volumes:
+      - ./backend:/app
+    networks:
+      - app-network
+    labels:
+      - traefik.enable=true
+      - traefik.http.routers.resume-service.rule=Host(`api.localhost`) && PathPrefix(`/api/v1/resumes`)
+      - traefik.http.routers.resume-service.entrypoints=web
+      - traefik.http.services.resume-service.loadbalancer.server.port=8001
+      - traefik.http.routers.resume-service.middlewares=cors-headers
+
+  interview-service:
+    build: 
+      context: ./backend
+      dockerfile: interview-service/Dockerfile
+    environment:
+      - mongodb_url=mongodb://admin:password123@mongodb:27017/interview_coach?authSource=admin
+      - database_name=interview_coach
+    depends_on:
+      - mongodb
+      - traefik
+    volumes:
+      - ./backend:/app
+    networks:
+      - app-network
+    labels:
+      - traefik.enable=true
+      - traefik.http.routers.interview-service.rule=Host(`api.localhost`) && PathPrefix(`/api/v1/interview`)
+      - traefik.http.routers.interview-service.entrypoints=web
+      - traefik.http.services.interview-service.loadbalancer.server.port=8002
+      - traefik.http.routers.interview-service.middlewares=cors-headers
+
+  learning-service:
+    build: 
+      context: ./backend
+      dockerfile: learning-service/Dockerfile
+    environment:
+      - mongodb_url=mongodb://admin:password123@mongodb:27017/interview_coach?authSource=admin
+      - database_name=interview_coach
+    depends_on:
+      - mongodb
+      - traefik
+    volumes:
+      - ./backend:/app
+    networks:
+      - app-network
+    labels:
+      - traefik.enable=true
+      - traefik.http.routers.learning-service.rule=Host(`api.localhost`) && PathPrefix(`/api/v1/learning`)
+      - traefik.http.routers.learning-service.entrypoints=web
+      - traefik.http.services.learning-service.loadbalancer.server.port=8003
+      - traefik.http.routers.learning-service.middlewares=cors-headers
+
+  mongodb:
+    image: mongo:7.0
+    ports:
+      - "27017:27017"
+    environment:
+      - MONGO_INITDB_ROOT_USERNAME=admin
+      - MONGO_INITDB_ROOT_PASSWORD=password123
+      - MONGO_INITDB_DATABASE=interview_coach
+    volumes:
+      - mongodb_data:/data/db
+      - ./backend/init-mongo.js:/docker-entrypoint-initdb.d/init-mongo.js:ro
+    networks:
+      - app-network
+
+volumes:
+  mongodb_data:
+
+networks:
+  app-network:
+    driver: bridge

@@ -1,0 +1,22 @@
+# 공통 의존성
+fastapi==0.104.1
+uvicorn[standard]==0.24.0
+motor==3.3.0
+pymongo==4.5.0
+pydantic==2.5.0
+pydantic-settings==2.1.0
+python-multipart==0.0.6
+
+# LLM 의존성
+openai>=1.6.1,<2.0.0
+langchain==0.1.0
+langchain-openai==0.0.2
+langchain-anthropic==0.1.0
+langchain-google-genai==0.0.11
+anthropic>=0.16.0,<1.0.0
+google-generativeai>=0.4.1,<0.5.0
+
+# 기타
+python-jose[cryptography]==3.3.0
+passlib[bcrypt]==1.7.4
+PyYAML>=6.0.0,<7.0.0

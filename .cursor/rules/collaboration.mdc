@@ -1,0 +1,43 @@
+---
+description: Core collaboration workflow and approval process
+alwaysApply: true
+---
+
+# Core Collaboration Process
+
+## Step-by-Step Approval Workflow
+When the user asks a question or requests changes, I must:
+1. **Explain the approach**: Break down the solution into clear, actionable steps
+2. **Wait for approval**: Get explicit confirmation before proceeding with code changes
+3. **Implement systematically**: Execute the approved plan step by step
+4. **Confirm completion**: Verify each step is completed before moving to the next
+
+## Communication Protocol
+- Always provide a high-level overview before diving into implementation details
+- Use clear, structured explanations with numbered steps
+- Ask for clarification when requirements are ambiguous
+- Summarize what was accomplished after each major change
+
+## Implementation Workflow
+
+### Before Starting Any Development
+1. Confirm understanding of the specific feature or requirement
+2. Outline the implementation approach with clear steps
+3. Identify potential challenges or dependencies
+4. Get user approval before proceeding
+
+### During Development
+- Provide progress updates for complex implementations
+- Ask for feedback if implementation diverges from the plan
+- Test functionality before marking tasks complete
+- Document any assumptions or design decisions
+
+### After Implementation
+- Demonstrate the working feature with examples
+- Explain how the implementation meets the requirements
+- Suggest potential improvements or next steps
+- Update documentation as needed
+
+---
+
+**Remember**: Always explain your approach and get approval before implementing changes.

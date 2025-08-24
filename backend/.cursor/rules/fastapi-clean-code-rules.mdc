@@ -1,0 +1,230 @@
+---
+description: FastAPI 프로젝트를 위한 클린 코드 및 유지보수성 향상 규칙
+alwaysApply: true
+---
+
+# FastAPI Clean Code Rules
+
+## 핵심 원칙
+
+### 1. 함수형 프로그래밍 우선
+- 클래스보다는 순수 함수를 선호
+- 부작용(side effects) 최소화
+- 의존성 주입을 통한 테스트 용이성 확보
+
+```python
+# Good: 순수 함수
+def format_resume_data(resume_data: dict) -> dict:
+    return {
+        "name": resume_data.get("name", ""),
+        "tech_skills": ", ".join(resume_data.get("tech_skills", []))
+    }
+
+# Avoid: 상태를 가진 클래스
+class ResumeFormatter:
+    def __init__(self):
+        self.cache = {}
+```
+
+### 2. 단일 책임 원칙 (SRP)
+- 각 함수는 하나의 명확한 목적만 가져야 함
+- 함수명이 그 기능을 정확히 표현해야 함
+- 15줄을 넘지 않도록 함수 분할
+
+```python
+# Good: 책임 분할
+async def validate_resume_exists(db: Database, resume_id: str) -> dict:
+    """이력서 존재 여부만 확인"""
+    resume = await get_resume_by_unique_key(db, resume_id)
+    if not resume:
+        raise HTTPException(status_code=404, detail="Resume not found")
+    return resume
+
+async def generate_questions_for_resume(resume_data: dict) -> List[dict]:
+    """질문 생성만 담당"""
+    return await llm_service.generate_interview_questions(resume_data)
+
+# Avoid: 여러 책임을 가진 함수
+async def generate_and_save_questions(unique_key: str, db: Database):
+    # 검증 + 생성 + 저장을 모두 담당
+```
+
+### 3. 조기 반환 (Early Return)
+- 에러 조건과 예외 상황을 함수 시작 부분에서 처리
+- 깊은 중첩(nesting) 방지
+
+```python
+# Good: 조기 반환
+async def process_resume(resume_id: str) -> dict:
+    if not resume_id:
+        raise ValueError("Resume ID is required")
+    
+    if not resume_id.strip():
+        raise ValueError("Resume ID cannot be empty")
+    
+    # 메인 로직
+    return await process_main_logic(resume_id)
+
+# Avoid: 깊은 중첩
+async def process_resume(resume_id: str) -> dict:
+    if resume_id:
+        if resume_id.strip():
+            # 메인 로직이 깊은 중첩 안에
+```
+
+### 4. 완전한 타입 힌트
+- 모든 함수 매개변수와 반환값에 타입 힌트 제공
+- Union, Optional 보다는 구체적인 타입 사용
+- Pydantic 모델 적극 활용
+
+```python
+# Good: 명확한 타입 힌트
+from typing import List, Optional
+from pydantic import BaseModel
+
+async def create_resume(
+    db: AsyncIOMotorDatabase, 
+    resume_data: ResumeCreate
+) -> tuple[str, str]:
+    """이력서 생성 - (resume_id, unique_key) 반환"""
+
+# Avoid: 타입 힌트 누락
+async def create_resume(db, resume_data):
+    """타입을 알 수 없음"""
+```
+
+## FastAPI 특화 규칙
+
+### 5. 의존성 주입 활용
+- Depends()를 통한 명확한 의존성 관리
+- 데이터베이스 연결, 인증 등을 의존성으로 분리
+
+```python
+# Good: 의존성 주입
+@router.post("/resumes/")
+async def create_resume(
+    resume_data: ResumeCreate,
+    db: AsyncIOMotorDatabase = Depends(get_database)
+) -> dict:
+    return await resume_service.create(db, resume_data)
+```
+
+### 6. 에러 처리 표준화
+- HTTPException 사용 시 일관된 에러 메시지 형식
+- 비즈니스 로직과 HTTP 에러 처리 분리
+
+```python
+# Good: 표준화된 에러 처리
+class ResumeNotFoundError(Exception):
+    pass
+
+async def get_resume_or_raise(db: Database, resume_id: str) -> dict:
+    resume = await get_resume(db, resume_id)
+    if not resume:
+        raise ResumeNotFoundError(f"Resume {resume_id} not found")
+    return resume
+
+# Route에서는 HTTP 에러로 변환
+@router.get("/{resume_id}")
+async def get_resume_endpoint(resume_id: str, db=Depends(get_database)):
+    try:
+        return await get_resume_or_raise(db, resume_id)
+    except ResumeNotFoundError as e:
+        raise HTTPException(status_code=404, detail=str(e))
+```
+
+## 코드 구조 규칙
+
+### 7. 계층 분리
+- Routes: HTTP 요청/응답만 처리
+- Services: 비즈니스 로직 담당
+- Repositories: 데이터 접근 담당
+- Utils: 공통 유틸리티 함수
+
+```
+backend/
+├── routes/     # HTTP 엔드포인트
+├── services/   # 비즈니스 로직
+├── repositories/  # 데이터 접근
+├── utils/      # 공통 함수
+└── schemas/    # Pydantic 모델
+```
+
+### 8. 중복 코드 제거
+- 공통 로직을 유틸리티 함수로 추출
+- 상수는 별도 파일에서 관리
+
+```python
+# Good: 공통 로직 추출
+async def call_llm_with_retry(
+    messages: List[BaseMessage],
+    max_retries: int = 3
+) -> str:
+    """LLM 호출 공통 로직"""
+    for attempt in range(max_retries):
+        try:
+            response = await llm.ainvoke(messages)
+            return response.content
+        except Exception as e:
+            if attempt == max_retries - 1:
+                raise
+            await asyncio.sleep(2 ** attempt)
+
+# 각 서비스에서 재사용
+async def generate_interview_questions(resume_data: dict) -> List[dict]:
+    messages = build_interview_prompt(resume_data)
+    response = await call_llm_with_retry(messages)
+    return parse_json_response(response)
+```
+
+### 9. 설정 관리
+- 환경별 설정 분리
+- 민감한 정보는 환경 변수로 관리
+
+```python
+# Good: 설정 클래스
+class Settings(BaseSettings):
+    openai_api_key: str = Field(..., env="OPENAI_API_KEY")
+    mongodb_url: str = Field(..., env="MONGODB_URL")
+    
+    class Config:
+        env_file = ".env"
+```
+
+### 10. 로깅 표준화
+- 구조화된 로깅 사용
+- 요청 ID를 통한 추적 가능성
+
+```python
+# Good: 구조화된 로깅
+logger.info(
+    "Resume created successfully",
+    extra={
+        "resume_id": resume_id,
+        "unique_key": unique_key,
+        "user_action": "create_resume"
+    }
+)
+```
+
+## 금지 사항
+
+### ❌ 피해야 할 패턴
+1. 거대한 클래스나 함수 (God Object)
+2. 하드코딩된 문자열이나 숫자
+3. 전역 변수 사용
+4. 깊은 중첩 (3단계 이상)
+5. 매직 넘버 사용
+6. 타입 힌트 없는 함수
+7. 예외 상황을 무시하는 코드
+
+### ✅ 권장 패턴
+1. 작고 집중된 함수
+2. 명확한 네이밍
+3. 의존성 주입
+4. 에러 우선 처리
+5. 타입 안정성
+6. 테스트 가능한 구조
+7. 문서화된 API
+
+이 규칙들을 따라 코드를 작성하면 유지보수성, 가독성, 테스트 용이성이 크게 향상됩니다.
