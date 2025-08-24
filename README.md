@@ -14,7 +14,7 @@
 
 # API 사용 가이드
 
-> AI Challenge API의 엔드포인트별 상세 사용법
+> AI Challenge API의 엔드포인트
 
 ## 요구사항
 
