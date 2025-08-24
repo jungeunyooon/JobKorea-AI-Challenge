@@ -2,7 +2,7 @@
 Learning Service 함수들
 """
 import json
-import logging
+from shared.utils.logger import setup_logger
 from typing import Dict, List, Any
 from datetime import datetime
 from langchain_core.messages import SystemMessage, HumanMessage
@@ -11,8 +11,9 @@ from shared.prompts.loader import get_prompt_loader
 from shared.utils.resume_formatter import format_resume_for_learning
 from shared.utils.json_parser import parse_llm_json_response
 from database import get_resumes_collection, get_learning_collection
-
-logger = logging.getLogger(__name__)
+from config import settings
+    
+logger = setup_logger("learning-service", settings.log_level)
 
 def _create_learning_path_prompt(formatted_data: Dict[str, Any]) -> List:
     """학습 경로 추천 프롬프트 생성 (YAML 파일 기반)"""

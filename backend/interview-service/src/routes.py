@@ -2,7 +2,7 @@
 Interview 서비스 API 라우트
 """
 
-import logging
+from shared.utils.logger import setup_logger
 import json
 import asyncio
 from fastapi import APIRouter, HTTPException
@@ -13,8 +13,9 @@ from src.crud import get_interview_by_unique_key
 from src.service import generate_interview_questions_service
 from tasks import get_task_progress_from_redis
 from shared.celery_app import celery_app
+from config import settings
 
-logger = logging.getLogger(__name__)
+logger = setup_logger("interview-service", settings.log_level)
 
 router = APIRouter()
 

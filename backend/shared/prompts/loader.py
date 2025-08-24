@@ -7,9 +7,9 @@ import os
 import yaml
 from typing import Dict, Any
 from pathlib import Path
-import logging
+from shared.utils.logger import setup_logger
 
-logger = logging.getLogger(__name__)
+logger = setup_logger(__name__)
 
 class PromptLoader:
     """YAML 기반 프롬프트 로더"""

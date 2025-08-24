@@ -2,8 +2,7 @@
 Learning Service API 라우트
 """
 
-import logging
-import json
+from shared.utils.logger import setup_logger
 import asyncio
 from fastapi import APIRouter, HTTPException
 from sse_starlette.sse import EventSourceResponse
@@ -14,8 +13,9 @@ from .schemas import LearningPathCreateResponse
 from database import get_learning_collection
 from tasks import get_task_progress_from_redis
 from shared.celery_app import celery_app
+from config import settings
 
-logger = logging.getLogger(__name__)
+logger = setup_logger("learning-service", settings.log_level)
 
 router = APIRouter()
 

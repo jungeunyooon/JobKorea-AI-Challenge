@@ -3,7 +3,6 @@ Interview Service Celery Tasks
 진행률 추적과 함께 면접 질문 생성 작업 처리
 """
 
-import logging
 import json
 import redis
 from typing import Dict, Any
@@ -15,8 +14,10 @@ from shared.utils.resume_formatter import format_resume_for_interview
 from shared.utils.json_parser import parse_llm_json_response
 from shared.llm.registry import registry
 from shared.prompts.loader import get_prompt_loader
+from shared.utils.logger import setup_logger
+from config import settings
 
-logger = logging.getLogger(__name__)
+logger = setup_logger("interview-service", settings.log_level)
 settings = BaseAppSettings()
 
 # Redis 직접 연결 (progress tracking용)

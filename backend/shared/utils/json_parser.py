@@ -4,10 +4,11 @@ LLM 응답 JSON 파싱 공통 유틸리티
 
 import json
 import re
-import logging
+from shared.utils.logger import setup_logger
 from typing import Dict, Any, List, Union
+from config import settings
 
-logger = logging.getLogger(__name__)
+logger = setup_logger("shared-json-parser", settings.log_level)
 
 
 def parse_llm_json_response(

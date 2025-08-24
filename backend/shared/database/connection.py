@@ -5,10 +5,11 @@ MongoDB 연결 관리
 from motor.motor_asyncio import AsyncIOMotorClient, AsyncIOMotorDatabase
 import pymongo
 from typing import Optional
-import logging
+from shared.utils.logger import setup_logger
 from shared.config.base import BaseAppSettings
+from config import settings
 
-logger = logging.getLogger(__name__)
+logger = setup_logger("shared-database", settings.log_level)
 
 # Celery tasks용 동기 연결
 def get_database():

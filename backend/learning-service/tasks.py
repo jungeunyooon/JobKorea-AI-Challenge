@@ -3,7 +3,7 @@ Learning Service Celery Tasks
 진행률 추적과 함께 학습 경로 생성 작업 처리
 """
 
-import logging
+from shared.utils.logger import setup_logger
 import json
 import redis
 from typing import Dict, Any
@@ -15,8 +15,9 @@ from shared.utils.resume_formatter import format_resume_for_learning
 from shared.utils.json_parser import parse_llm_json_response
 from shared.llm.registry import registry
 from shared.prompts.loader import get_prompt_loader
+from config import settings
 
-logger = logging.getLogger(__name__)
+logger = setup_logger("learning-service", settings.log_level)
 settings = BaseAppSettings()
 
 # Redis 직접 연결 (progress tracking용)

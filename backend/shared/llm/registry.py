@@ -3,14 +3,15 @@ LLM 클라이언트 레지스트리 - 다중 제공자 관리 및 폴백 시스�
 """
 
 from typing import Dict, List, Optional, Type
-import logging
+from shared.utils.logger import setup_logger
 from .base import LLMClient
 from shared.config.base import BaseAppSettings
+from config import settings
 
 # 임시 설정 인스턴스 (각 서비스에서 주입받아 사용)
 settings = BaseAppSettings()
 
-logger = logging.getLogger(__name__)
+logger = setup_logger("shared-llm", settings.log_level)
 
 class LLMRegistry:
     """LLM 클라이언트 레지스트리"""
