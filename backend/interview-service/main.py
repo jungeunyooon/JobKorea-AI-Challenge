@@ -3,7 +3,10 @@ Interview 마이크로서비스 메인 애플리케이션
 """
 
 from fastapi import FastAPI
+from fastapi.staticfiles import StaticFiles
+from fastapi.responses import FileResponse
 from contextlib import asynccontextmanager
+import os
 
 from src.routes import router
 from config import settings
@@ -35,6 +38,17 @@ app = FastAPI(
 
 # 라우터 등록
 app.include_router(router, prefix=settings.api_prefix, tags=["interview"])
+
+# 테스트 페이지 라우트 추가
+@app.get("/test")
+async def get_test_page():
+    """비동기 API 테스트 페이지"""
+    # backend 디렉토리의 test_async_api.html 파일 반환  
+    test_file_path = "/app/test_async_api.html"
+    if os.path.exists(test_file_path):
+        return FileResponse(test_file_path, media_type="text/html")
+    else:
+        return {"error": "Test page not found"}
 
 @app.get("/")
 async def root():

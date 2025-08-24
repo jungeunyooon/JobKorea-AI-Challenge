@@ -1,0 +1,466 @@
+<!DOCTYPE html>
+<html lang="ko">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>비동기 AI 서비스 테스트 (면접 질문 + 학습 경로)</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            max-width: 800px;
+            margin: 0 auto;
+            padding: 20px;
+        }
+
+        .container {
+            background: #f5f5f5;
+            padding: 20px;
+            border-radius: 8px;
+            margin: 10px 0;
+        }
+
+        .progress-bar {
+            width: 100%;
+            height: 20px;
+            background: #ddd;
+            border-radius: 10px;
+            overflow: hidden;
+        }
+
+        .progress-fill {
+            height: 100%;
+            background: linear-gradient(90deg, #4CAF50, #45a049);
+            width: 0%;
+            transition: width 0.3s ease;
+        }
+
+        .status {
+            margin: 10px 0;
+            padding: 10px;
+            border-radius: 4px;
+        }
+
+        .status.pending {
+            background: #fff3cd;
+            border: 1px solid #ffeaa7;
+        }
+
+        .status.progress {
+            background: #d1ecf1;
+            border: 1px solid #bee5eb;
+        }
+
+        .status.success {
+            background: #d4edda;
+            border: 1px solid #c3e6cb;
+        }
+
+        .status.error {
+            background: #f8d7da;
+            border: 1px solid #f5c6cb;
+        }
+
+        button {
+            background: #007bff;
+            color: white;
+            border: none;
+            padding: 10px 20px;
+            border-radius: 4px;
+            cursor: pointer;
+            margin: 5px;
+        }
+
+        button:hover {
+            background: #0056b3;
+        }
+
+        button:disabled {
+            background: #6c757d;
+            cursor: not-allowed;
+        }
+
+        .result {
+            background: white;
+            border: 1px solid #ddd;
+            padding: 15px;
+            border-radius: 4px;
+            margin-top: 15px;
+        }
+
+        .question {
+            margin: 10px 0;
+            padding: 10px;
+            background: #f8f9fa;
+            border-left: 4px solid #007bff;
+        }
+
+        input {
+            width: 300px;
+            padding: 8px;
+            border: 1px solid #ddd;
+            border-radius: 4px;
+        }
+    </style>
+</head>
+
+<body>
+    <h1>🚀 비동기 AI 서비스 테스트</h1>
+    <p style="text-align: center; color: #666; margin-bottom: 30px;">
+        면접 질문 생성 & 학습 경로 추천 서비스 통합 테스트
+    </p>
+
+    <div class="container">
+        <h3>📋 테스트 설정</h3>
+
+        <div style="margin-bottom: 15px;">
+            <strong>서비스 선택:</strong><br>
+            <label style="margin-right: 20px;">
+                <input type="radio" name="serviceType" value="interview" checked>
+                🎯 면접 질문 생성
+            </label>
+            <label>
+                <input type="radio" name="serviceType" value="learning">
+                📚 학습 경로 추천
+            </label>
+        </div>
+
+        <label>
+            이력서 고유 키:
+            <input type="text" id="resumeKey" value="윤정은_2" placeholder="예: 윤정은_2">
+        </label>
+        <br><br>
+
+        <button onclick="startAsyncGeneration()" id="startBtn">비동기 작업 시작</button>
+        <button onclick="checkProgress()" id="checkBtn" disabled>진행 상황 확인</button>
+        <button onclick="startSSEStream()" id="sseBtn" disabled>SSE 스트림 시작</button>
+
+        <div id="serviceInfo"
+            style="margin-top: 10px; padding: 10px; background: #e7f3ff; border-radius: 4px; font-size: 14px;">
+            <span id="serviceDescription">🎯 면접 질문 생성 서비스를 테스트합니다</span>
+        </div>
+    </div>
+
+    <div class="container">
+        <h3>📊 진행 상황</h3>
+        <div class="progress-bar">
+            <div class="progress-fill" id="progressFill"></div>
+        </div>
+        <div id="progressText">진행률: 0%</div>
+
+        <div id="statusContainer">
+            <div class="status pending" id="status">
+                작업을 시작하려면 위의 버튼을 클릭하세요.
+            </div>
+        </div>
+    </div>
+
+    <div class="container">
+        <h3>📡 실시간 로그</h3>
+        <div id="logContainer"
+            style="height: 200px; overflow-y: auto; background: #000; color: #0f0; padding: 10px; font-family: monospace; border-radius: 4px;">
+            시스템 준비 완료. 작업을 시작하세요...<br>
+        </div>
+    </div>
+
+    <div id="resultContainer" style="display: none;">
+        <div class="container">
+            <h3 id="resultTitle">✅ 결과</h3>
+            <div id="resultContent" class="result"></div>
+        </div>
+    </div>
+
+    <script>
+        let currentTaskId = null;
+        let eventSource = null;
+        let currentServiceType = 'interview';
+
+        // 서비스 타입 가져오기
+        function getServiceType() {
+            const radios = document.getElementsByName('serviceType');
+            for (const radio of radios) {
+                if (radio.checked) {
+                    return radio.value;
+                }
+            }
+            return 'interview';
+        }
+
+        // 서비스 API 정보 가져오기
+        function getServiceConfig(serviceType) {
+            if (serviceType === 'interview') {
+                return {
+                    endpoint: 'interview',
+                    path: 'questions',
+                    description: '🎯 면접 질문 생성 서비스를 테스트합니다',
+                    resultTitle: '✅ 생성된 면접 질문'
+                };
+            } else {
+                return {
+                    endpoint: 'learning',
+                    path: 'learning-path',
+                    description: '📚 학습 경로 추천 서비스를 테스트합니다',
+                    resultTitle: '✅ 생성된 학습 경로'
+                };
+            }
+        }
+
+        // 서비스 변경 시 UI 업데이트
+        function updateServiceUI() {
+            const serviceType = getServiceType();
+            const config = getServiceConfig(serviceType);
+
+            currentServiceType = serviceType;
+            document.getElementById('serviceDescription').textContent = config.description;
+            document.getElementById('resultTitle').textContent = config.resultTitle;
+
+            // 진행 중인 작업이 있다면 초기화
+            if (currentTaskId) {
+                currentTaskId = null;
+                document.getElementById('checkBtn').disabled = true;
+                document.getElementById('sseBtn').disabled = true;
+                document.getElementById('resultContainer').style.display = 'none';
+                updateProgress(0, '서비스를 변경했습니다. 새로운 작업을 시작하세요.', 'pending');
+            }
+        }
+
+        // 라디오 버튼 이벤트 리스너
+        document.addEventListener('DOMContentLoaded', function () {
+            const radios = document.getElementsByName('serviceType');
+            radios.forEach(radio => {
+                radio.addEventListener('change', updateServiceUI);
+            });
+        });
+
+        function log(message) {
+            const logContainer = document.getElementById('logContainer');
+            const timestamp = new Date().toLocaleTimeString();
+            logContainer.innerHTML += `[${timestamp}] ${message}<br>`;
+            logContainer.scrollTop = logContainer.scrollHeight;
+        }
+
+        function updateProgress(progress, message, stage) {
+            document.getElementById('progressFill').style.width = `${progress}%`;
+            document.getElementById('progressText').textContent = `진행률: ${progress}% - ${message}`;
+
+            const status = document.getElementById('status');
+            status.textContent = message;
+            status.className = `status ${stage}`;
+        }
+
+        async function startAsyncGeneration() {
+            const resumeKey = document.getElementById('resumeKey').value;
+            if (!resumeKey) {
+                alert('이력서 고유 키를 입력해주세요.');
+                return;
+            }
+
+            const serviceType = getServiceType();
+            const config = getServiceConfig(serviceType);
+
+            try {
+                log(`${config.description.split(' ')[0]} 비동기 작업 시작: ${resumeKey}`);
+                updateProgress(0, '작업 시작 중...', 'pending');
+
+                const apiUrl = `http://api.localhost/api/v1/${config.endpoint}/async/${resumeKey}/${config.path}`;
+                log(`📡 API 호출: ${apiUrl}`);
+
+                const response = await fetch(apiUrl, {
+                    method: 'POST'
+                });
+
+                if (!response.ok) {
+                    throw new Error(`HTTP ${response.status}: ${response.statusText}`);
+                }
+
+                const data = await response.json();
+                currentTaskId = data.task_id;
+                currentServiceType = serviceType;
+
+                log(`✅ 작업 ID: ${currentTaskId}`);
+                log(`📋 서비스: ${serviceType === 'interview' ? '면접 질문 생성' : '학습 경로 추천'}`);
+                log(`⏰ 예상 완료 시간: ${data.estimated_time}`);
+
+                document.getElementById('checkBtn').disabled = false;
+                document.getElementById('sseBtn').disabled = false;
+
+                updateProgress(5, data.message, 'pending');
+
+            } catch (error) {
+                log(`❌ 오류: ${error.message}`);
+                updateProgress(0, `오류: ${error.message}`, 'error');
+            }
+        }
+
+        async function checkProgress() {
+            if (!currentTaskId) {
+                alert('먼저 작업을 시작해주세요.');
+                return;
+            }
+
+            try {
+                const config = getServiceConfig(currentServiceType);
+                const response = await fetch(`http://api.localhost/api/v1/${config.endpoint}/tasks/${currentTaskId}/progress`);
+                const data = await response.json();
+
+                log(`📊 상태: ${data.state}, 진행률: ${data.progress}%`);
+                updateProgress(data.progress, data.message, data.stage);
+
+                if (data.state === 'SUCCESS') {
+                    showResult(data.result, currentServiceType);
+                } else if (data.state === 'FAILURE') {
+                    log(`❌ 작업 실패: ${data.error}`);
+                }
+
+            } catch (error) {
+                log(`❌ 진행 상황 조회 오류: ${error.message}`);
+            }
+        }
+
+        function startSSEStream() {
+            if (!currentTaskId) {
+                alert('먼저 작업을 시작해주세요.');
+                return;
+            }
+
+            if (eventSource) {
+                eventSource.close();
+            }
+
+            const config = getServiceConfig(currentServiceType);
+            const streamUrl = `http://api.localhost/api/v1/${config.endpoint}/tasks/${currentTaskId}/stream`;
+
+            log(`🌊 SSE 스트림 시작: ${currentTaskId}`);
+            log(`📡 스트림 URL: ${streamUrl}`);
+
+            eventSource = new EventSource(streamUrl);
+
+            eventSource.addEventListener('progress', (event) => {
+                const data = JSON.parse(event.data);
+                log(`📈 진행률 업데이트: ${data.progress}% - ${data.message}`);
+                updateProgress(data.progress, data.message, data.stage);
+            });
+
+            eventSource.addEventListener('completed', (event) => {
+                const data = JSON.parse(event.data);
+                log(`🎉 작업 완료!`);
+                updateProgress(100, data.message, 'success');
+                showResult(data.result, currentServiceType);
+                eventSource.close();
+            });
+
+            eventSource.addEventListener('error', (event) => {
+                const data = JSON.parse(event.data);
+                log(`❌ 스트림 오류: ${data.error || data.message}`);
+                updateProgress(0, `오류: ${data.error || data.message}`, 'error');
+                eventSource.close();
+            });
+
+            eventSource.addEventListener('close', (event) => {
+                log(`🔚 스트림 종료`);
+                eventSource.close();
+            });
+
+            eventSource.onerror = (error) => {
+                log(`❌ SSE 연결 오류`);
+                eventSource.close();
+            };
+        }
+
+        function showResult(result, serviceType) {
+            const resultContainer = document.getElementById('resultContainer');
+            const resultContent = document.getElementById('resultContent');
+
+            let html = `
+                <h4>📋 생성 정보</h4>
+                <p><strong>이력서 ID:</strong> ${result.resume_id || result.unique_key}</p>
+                <p><strong>생성 시간:</strong> ${result.generated_at}</p>
+            `;
+
+            if (serviceType === 'interview') {
+                html += `
+                    <p><strong>사용 모델:</strong> ${result.model_used}</p>
+                    <p><strong>작업 ID:</strong> ${result.task_id}</p>
+                    
+                    <h4>❓ 면접 질문들</h4>
+                `;
+
+                result.questions.forEach((question, index) => {
+                    html += `
+                        <div class="question">
+                            <h5>질문 ${index + 1} - ${question.difficulty} (${question.topic})</h5>
+                            <p><strong>질문:</strong> ${question.question}</p>
+                            <p><strong>좋은 답변이 포함해야 할 내용:</strong> ${question.what_good_answers_cover}</p>
+                        </div>
+                    `;
+                });
+
+            } else if (serviceType === 'learning') {
+                html += `
+                    <p><strong>사용 모델:</strong> ${result.model}</p>
+                    <p><strong>제공자:</strong> ${result.provider}</p>
+                    
+                    <h4>🎯 이력서 분석</h4>
+                    <div class="question">
+                        <h5>💪 강점</h5>
+                        <ul>
+                `;
+
+                result.analysis.strengths.forEach(strength => {
+                    html += `<li>${strength}</li>`;
+                });
+
+                html += `
+                        </ul>
+                        <h5>📈 개선 영역</h5>
+                        <ul>
+                `;
+
+                result.analysis.weaknesses.forEach(weakness => {
+                    html += `<li>${weakness}</li>`;
+                });
+
+                html += `
+                        </ul>
+                    </div>
+                    
+                    <h4>📚 맞춤 학습 경로</h4>
+                    <div class="question">
+                        <h5>📝 전체 요약</h5>
+                        <p>${result.summary}</p>
+                    </div>
+                `;
+
+                result.learning_paths.forEach((path, index) => {
+                    const typeIcon = path.type === 'strength' ? '💪' : '📈';
+                    const typeText = path.type === 'strength' ? '강점 심화' : '약점 보완';
+
+                    html += `
+                        <div class="question">
+                            <h5>${typeIcon} 학습 ${index + 1}: ${path.title} (${typeText})</h5>
+                            <p><strong>설명:</strong> ${path.description}</p>
+                            <p><strong>추천 이유:</strong> ${path.reason}</p>
+                            <p><strong>학습 리소스:</strong> ${path.resources.join(', ')}</p>
+                            <p><strong>참고 링크:</strong> <a href="${path.link}" target="_blank">${path.link}</a></p>
+                        </div>
+                    `;
+                });
+            }
+
+            resultContent.innerHTML = html;
+            resultContainer.style.display = 'block';
+
+            // 결과 영역으로 스크롤
+            resultContainer.scrollIntoView({ behavior: 'smooth' });
+        }
+
+        // 페이지 언로드 시 EventSource 정리
+        window.addEventListener('beforeunload', () => {
+            if (eventSource) {
+                eventSource.close();
+            }
+        });
+    </script>
+</body>
+
+</html>

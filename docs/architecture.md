@@ -16,6 +16,7 @@
   - Resume API: http://api.localhost/api/v1/resumes/docs
   - Interview API: http://api.localhost/api/v1/interview/docs  
   - Learning API: http://api.localhost/api/v1/learning/docs
+  - 통합 테스트 페이지*: http://api.localhost/test
   - Traefik Dashboard: http://localhost:8080
 
 ## 아키텍처 구성 요소
@@ -39,16 +40,35 @@
 - **Claude 3.5 Sonnet**: 창의적이고 상세한 고품질 응답
 - **Gemini 1.5 Flash**: 무료 모델로 비용 최적화
 
+### **비동기 처리 레이어**
+- **Celery**: 백그라운드 작업 큐 시스템으로 LLM 작업 처리
+- **RabbitMQ**: 메시지 브로커로 작업 큐 관리
+- **Redis**: Celery 결과 백엔드 및 진행률 추적
+- **SSE (Server-Sent Events)**: 실시간 진행률 업데이트
+
 ### **인프라 레이어**
 - **Docker Compose**: 로컬 개발 환경 통합 관리
-- **API Gateway** (향후): Traefik 기반 라우팅 및 로드밸런싱
+- **Traefik**: API Gateway 기반 라우팅 및 로드밸런싱
 
 ## 데이터 흐름 (Data Flow)
 
+### **동기 처리 (Synchronous)**
 1. **이력서 등록**: Client → Resume Service → MongoDB
-2. **면접 질문 생성**: Client → Interview Service → LLM → MongoDB
-3. **학습 경로 생성**: Client → Learning Service → LLM → MongoDB
-4. **폴백 처리**: LLM 실패 시 자동으로 다른 Provider로 전환
+2. **면접 질문 생성 (동기)**: Client → Interview Service → LLM → MongoDB
+
+### **비동기 처리 (Asynchronous)**
+3. **면접 질문 생성 (비동기)**:
+   - Client → Interview Service → Celery Task → RabbitMQ Queue
+   - Celery Worker → LLM API → MongoDB
+   - 진행률 추적: Redis → SSE → Client (실시간 업데이트)
+
+4. **학습 경로 생성 (비동기)**:
+   - Client → Learning Service → Celery Task → RabbitMQ Queue
+   - Celery Worker → LLM API → MongoDB
+   - 진행률 추적: Redis → SSE → Client (실시간 업데이트)
+
+5. **폴백 처리**: LLM 실패 시 자동으로 다른 Provider로 전환
+6. **실시간 모니터링**: Flower Dashboard로 Celery 작업 상태 확인
 
 ## 기술 스택 선정 이유
 
@@ -98,6 +118,30 @@
 ### MSA 설계 원칙:
 1. **단일 책임**: 각 서비스는 하나의 비즈니스 도메인만 담당
 2. **데이터 독립성**: 각 서비스가 독립적인 데이터베이스 접근
-3. **API 게이트웨이**: 향후 Traefik 또는 Kong 도입 예정
+3. **API 게이트웨이**: Traefik 기반 라우팅 및 로드밸런싱
 4. **서비스간 통신**: REST API 기반 (향후 gRPC 고려)
 5. **공통 모듈**: shared 폴더로 코드 재사용성 극대화
+
+## 통합 테스트 환경
+
+### **테스트 페이지 (`http://api.localhost/test`)**
+- **통합 테스트 UI**: 브라우저에서 바로 접속하여 전체 기능 테스트
+- **서비스 선택**: Interview (면접 질문) / Learning (학습 경로) 서비스 전환
+- **실시간 진행률**: SSE를 통한 실시간 작업 진행 상황 모니터링
+- **결과 시각화**: 생성된 면접 질문 및 학습 경로의 구조화된 표시
+
+### **모니터링 도구**
+- **Flower Dashboard**: `http://localhost:5555` (Celery 작업 모니터링)
+- **Traefik Dashboard**: `http://localhost:8080` (API Gateway 라우팅 상태)
+- **API 문서**: 각 서비스별 Swagger UI 제공
+
+### **비동기 API 엔드포인트**
+```
+POST /api/v1/interview/async/{unique_key}/questions   # 비동기 면접 질문 생성
+GET  /api/v1/interview/tasks/{task_id}/progress       # 진행률 확인
+GET  /api/v1/interview/tasks/{task_id}/stream         # SSE 스트림
+
+POST /api/v1/learning/async/{unique_key}/learning-path  # 비동기 학습 경로 생성  
+GET  /api/v1/learning/tasks/{task_id}/progress          # 진행률 확인
+GET  /api/v1/learning/tasks/{task_id}/stream            # SSE 스트림
+```

@@ -29,7 +29,13 @@ class OpenAIClient(LLMClient):
         """사용 중인 LLM 모델명"""
         return self._model
 
+    def invoke(self, prompt, **kwargs) -> str:
+        """동기 OpenAI LLM 호출"""
+        resp = self._llm.invoke(prompt, **kwargs)
+        return getattr(resp, "content", str(resp))
+
     async def ainvoke(self, prompt: str, **kwargs) -> str:
+        """비동기 OpenAI LLM 호출"""
         resp = await self._llm.ainvoke(prompt, **kwargs)
         return getattr(resp, "content", str(resp))
 

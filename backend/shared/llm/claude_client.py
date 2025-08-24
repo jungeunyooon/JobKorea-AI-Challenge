@@ -33,6 +33,14 @@ class ClaudeClient(LLMClient):
         """클라이언트 이름"""
         return self._name
     
+    def invoke(self, prompt, **kwargs) -> str:
+        """동기 Claude LLM 호출"""
+        try:
+            resp = self._llm.invoke(prompt, **kwargs)
+            return getattr(resp, "content", str(resp))
+        except Exception as e:
+            raise Exception(f"Claude API call failed: {e}")
+
     async def ainvoke(self, prompt: str, **kwargs) -> str:
         """비동기 Claude LLM 호출"""
         try:
@@ -40,10 +48,6 @@ class ClaudeClient(LLMClient):
             return getattr(resp, "content", str(resp))
         except Exception as e:
             raise Exception(f"Claude API call failed: {e}")
-        
-        # 구현 예시:
-        # resp = await self._llm.ainvoke(prompt, **kwargs)
-        # return getattr(resp, "content", str(resp))
     
     async def astream(self, prompt: str, **kwargs) -> AsyncIterable[str]:
         """비동기 스트리밍 Claude LLM 호출"""

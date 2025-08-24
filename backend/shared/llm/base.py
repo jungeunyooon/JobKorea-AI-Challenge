@@ -15,6 +15,11 @@ class LLMClient(ABC):
         pass
     
     @abstractmethod
+    def invoke(self, prompt, **kwargs) -> str:
+        """동기 LLM 호출"""
+        pass
+
+    @abstractmethod
     async def ainvoke(self, prompt: str, **kwargs) -> str:
         """비동기 LLM 호출"""
         pass

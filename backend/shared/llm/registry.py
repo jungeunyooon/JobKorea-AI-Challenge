@@ -152,8 +152,30 @@ class MultiLLMClient:
                 
         return None
     
+    def invoke(self, prompt, **kwargs) -> str:
+        """폴백 지원 동기 LLM 호출"""
+        # 기본 클라이언트 시도
+        try:
+            client = self.registry.get_client(self.primary)
+            if client:
+                return client.invoke(prompt, **kwargs)
+        except Exception as e:
+            logger.warning(f"Primary LLM ({self.primary}) failed: {e}")
+        
+        # 폴백 클라이언트들 시도
+        for fallback_name in self.fallbacks:
+            try:
+                client = self.registry.get_client(fallback_name)
+                if client:
+                    logger.info(f"Trying fallback LLM: {fallback_name}")
+                    return client.invoke(prompt, **kwargs)
+            except Exception as e:
+                logger.warning(f"Fallback LLM ({fallback_name}) failed: {e}")
+                
+        raise Exception("All LLM clients failed")
+
     async def ainvoke(self, prompt: str, **kwargs) -> str:
-        """폴백 지원 LLM 호출"""
+        """폴백 지원 비동기 LLM 호출"""
         # 기본 클라이언트 시도
         try:
             client = self.registry.get_client(self.primary)

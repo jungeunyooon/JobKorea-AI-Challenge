@@ -2,19 +2,7 @@
 
 > AI Challenge API의 확장성을 위한 로드맵 및 기술적 고려사항
 
-## 1. 비동기 처리 최적화 (Python GIL 해결)
-
-### 현재 상황:
-- FastAPI의 async/await 활용으로 I/O 바운드 작업 최적화
-- LLM API 호출 시 비동기 처리로 동시성 확보
-
-### 향후 개선 방안:
-- **멀티프로세싱**: CPU 집약적 작업을 위한 ProcessPoolExecutor
-- **Celery**: 백그라운드 작업 큐 시스템 도입
-- **Redis**: 작업 큐 및 캐싱 레이어 추가
-- **uvloop**: 기본 asyncio 이벤트 루프 대체
-
-## 2. PDF 파싱 및 멀티모달 AI
+## 1. PDF 파싱 및 멀티모달 AI
 
 ### 구현 계획:
 
@@ -40,7 +28,7 @@ PDF → Text Extraction → Structured Data → LLM Analysis
 - **형식 지원**: PDF, DOC, DOCX, 이미지 파일
 - **개인정보 보호**: 민감 정보 자동 마스킹
 
-## 3. LLM Batch 처리
+## 2. LLM Batch 처리
 
 ### 비용 최적화 전략:
 ```python
@@ -58,7 +46,7 @@ batch_requests = [
 - **스케줄링**: 야간 시간대 배치 처리
 - **우선순위**: 실시간 vs 배치 처리 구분
 
-## 4. 검색 기반 신뢰성 (RAG & External Knowledge)
+## 3. 검색 기반 신뢰성 (RAG & External Knowledge)
 
 ### RAG (Retrieval Augmented Generation) 구현:
 ```python
@@ -79,7 +67,7 @@ Knowledge Base:
 - **Stack Overflow API**: 기술별 학습 리소스
 
 
-## 5. Rate Limiting 및 트래픽 제어
+## 4. Rate Limiting 및 트래픽 제어
 
 ### 다층 Rate Limiting:
 ```python
@@ -101,7 +89,7 @@ Knowledge Base:
 - **SlowAPI**: FastAPI Rate Limiting 미들웨어
 - **Nginx**: L4 레벨 트래픽 제어
 
-## 6. LLM 비용 최적화 전략
+## 5. LLM 비용 최적화 전략
 
 ### 스마트 라우팅:
 ```python
@@ -120,7 +108,7 @@ def select_model(request_complexity):
 - **임베딩 기반**: 이력서 유사도 측정 후 캐시 활용
 - **TTL 관리**: 시간 기반 캐시 무효화
 
-## 7. 응답 시간 기반 폴백 전략
+## 6. 응답 시간 기반 폴백 전략
 
 ### 지능형 폴백:
 ```python
@@ -141,7 +129,7 @@ if response_time > avg_time * 1.5:
 - **모델별 SLA**: 개별 모델 성능 추적
 - **자동 스케일링**: 트래픽 기반 인스턴스 조정
 
-## 8. 고급 보안 및 개인정보 보호
+## 7. 고급 보안 및 개인정보 보호
 
 ### 데이터 보안 강화:
 - **암호화**: 이력서 데이터 AES-256 암호화
@@ -154,7 +142,7 @@ if response_time > avg_time * 1.5:
 - **API 키 관리**: 서비스별 API 키 로테이션
 - **DDoS 방어**: Cloudflare 또는 AWS Shield 연동
 
-## 9. 모니터링 및 관찰 가능성
+## 8. 모니터링 및 관찰 가능성
 
 ### APM (Application Performance Monitoring):
 ```python

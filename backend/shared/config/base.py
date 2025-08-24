@@ -40,6 +40,14 @@ class BaseAppSettings(BaseSettings):
     gemini_max_tokens: int = os.environ.get("GEMINI_MAX_TOKENS")
     gemini_timeout: int = os.environ.get("GEMINI_TIMEOUT")
     
+    # Celery 설정
+    celery_broker_url: str = os.environ.get("CELERY_BROKER_URL")
+    celery_result_backend: str = os.environ.get("CELERY_RESULT_BACKEND")
+    celery_task_serializer: str = os.environ.get("CELERY_TASK_SERIALIZER", "json")
+    celery_accept_content: str = os.environ.get("CELERY_ACCEPT_CONTENT", "json")
+    celery_result_serializer: str = os.environ.get("CELERY_RESULT_SERIALIZER", "json")
+    celery_timezone: str = os.environ.get("CELERY_TIMEZONE", "Asia/Seoul")
+    
     class Config:
         env_file = ".env"   
         case_sensitive = False

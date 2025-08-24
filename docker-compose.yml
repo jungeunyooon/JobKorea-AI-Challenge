@@ -66,6 +66,11 @@ services:
       - traefik.http.routers.interview-service.entrypoints=web
       - traefik.http.services.interview-service.loadbalancer.server.port=8002
       - traefik.http.routers.interview-service.middlewares=cors-headers
+      # 테스트 페이지 라우터 추가
+      - traefik.http.routers.interview-test.rule=Host(`api.localhost`) && Path(`/test`)
+      - traefik.http.routers.interview-test.entrypoints=web
+      - traefik.http.routers.interview-test.service=interview-service
+      - traefik.http.routers.interview-test.middlewares=cors-headers
 
   learning-service:
     build: 
@@ -103,8 +108,87 @@ services:
     networks:
       - app-network
 
+  # RabbitMQ - 메시지 브로커
+  rabbitmq:
+    image: rabbitmq:3-management
+    ports:
+      - "5672:5672"    # AMQP port
+      - "15672:15672"  # Management UI
+    env_file:
+      - .env
+    environment:
+      - RABBITMQ_DEFAULT_USER=${RABBITMQ_DEFAULT_USER}
+      - RABBITMQ_DEFAULT_PASS=${RABBITMQ_DEFAULT_PASS}
+    volumes:
+      - rabbitmq_data:/var/lib/rabbitmq
+    networks:
+      - app-network
+
+  # Redis - 결과 저장소 및 캐시
+  redis:
+    image: redis:7-alpine
+    ports:
+      - "6379:6379"
+    command: redis-server --appendonly yes
+    volumes:
+      - redis_data:/data
+    networks:
+      - app-network
+
+  # Interview Service Celery Worker
+  celery-worker-interview:
+    build:
+      context: ./backend
+      dockerfile: interview-service/Dockerfile
+    command: celery -A shared.celery_app worker -Q interview_queue --loglevel=info --concurrency=2
+    env_file:
+      - .env
+    depends_on:
+      - rabbitmq
+      - redis
+      - mongodb
+    volumes:
+      - ./backend:/app
+    networks:
+      - app-network
+
+  # Learning Service Celery Worker  
+  celery-worker-learning:
+    build:
+      context: ./backend
+      dockerfile: learning-service/Dockerfile
+    command: celery -A shared.celery_app worker -Q learning_queue --loglevel=info --concurrency=2
+    env_file:
+      - .env
+    depends_on:
+      - rabbitmq
+      - redis
+      - mongodb
+    volumes:
+      - ./backend:/app
+    networks:
+      - app-network
+
+  # Celery Flower - 모니터링 대시보드
+  celery-flower:
+    image: mher/flower
+    container_name: ai-challenge-flower
+    environment:
+      - CELERY_BROKER_URL=${CELERY_BROKER_URL}
+      - TZ=Asia/Seoul
+    ports:
+      - "5555:5555"  # Flower 대시보드
+    depends_on:
+      - rabbitmq
+      - celery-worker-interview
+      - celery-worker-learning
+    networks:
+      - app-network
+
 volumes:
   mongodb_data:
+  redis_data:
+  rabbitmq_data:
 
 networks:
   app-network:

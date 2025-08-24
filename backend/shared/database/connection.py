@@ -3,10 +3,26 @@ MongoDB 연결 관리
 """
 
 from motor.motor_asyncio import AsyncIOMotorClient, AsyncIOMotorDatabase
+import pymongo
 from typing import Optional
 import logging
+from shared.config.base import BaseAppSettings
 
 logger = logging.getLogger(__name__)
+
+# Celery tasks용 동기 연결
+def get_database():
+    """
+    Celery tasks용 동기 MongoDB 연결
+    """
+    settings = BaseAppSettings()
+    try:
+        client = pymongo.MongoClient(settings.mongodb_url)
+        database = client[settings.database_name]
+        return database
+    except Exception as e:
+        logger.error(f"Failed to connect to MongoDB: {e}")
+        raise
 
 class DatabaseManager:
     """MongoDB 연결 관리자"""
