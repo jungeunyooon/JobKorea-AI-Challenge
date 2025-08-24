@@ -15,7 +15,10 @@
 - **입력 형태**: JSON
 - **지원 정보**: 경력 요약, 수행 직무, 보유 기술 스킬, 경력 연수
 
-**예시 입력:**
+
+<details>
+<summary>예시 입력</summary>
+
 ```json
 {
   "name": "김개발",
@@ -59,6 +62,8 @@
   "total_experience_months": 36
 }
 ```
+
+</details>
 
 ### 2. 맞춤형 면접 질문 생성
 - **API 엔드포인트**: `POST /api/v1/interview/{unique_key}/questions`
@@ -142,6 +147,9 @@
 
 #### 현재 구현된 마이크로서비스 구조:
 
+<details>
+<summary> MSA 폴더 구조</summary>
+
 ```
 📁 backend/
 ├── shared/                    # 공통 모듈
@@ -172,6 +180,8 @@
     └── main.py                  # 서비스 엔트리포인트
 ```
 
+</details>
+
 #### MSA 설계 원칙:
 1. **단일 책임**: 각 서비스는 하나의 비즈니스 도메인만 담당
 2. **데이터 독립성**: 각 서비스가 독립적인 데이터베이스 접근
@@ -182,6 +192,9 @@
 ### 테스트 전략
 
 #### **Given-When-Then 패턴**
+
+<details>
+<summary> BDD 테스트 예시</summary>
 
 ```python
 def test_generate_interview_questions():
@@ -197,8 +210,13 @@ def test_generate_interview_questions():
     assert all("question" in q for q in response.json()["questions"])
 ```
 
+</details>
+
 #### **Table Driven Test**
 다양한 시나리오를 효율적으로 테스트:
+
+<details>
+<summary 파라미터화된 테스트 예시</summary>
 
 ```python
 @pytest.mark.parametrize("unique_key,resume_type,expected_questions", [
@@ -221,7 +239,12 @@ def test_resume_based_question_generation(unique_key, resume_type, expected_ques
         assert response.status_code == 404
 ```
 
+</details>
+
 #### **Flaky Test 대응 전략**
+
+<details>
+<summary>Flaky Test 대응 전략</summary>
 
 ##### **자동 재실행 (Rerun)**
 ```python
@@ -258,6 +281,8 @@ def test_learning_path_generation():
     assert response.status_code == 200
 ```
 
+</details>
+
 ## 선정된 llm 모델 및 전략
 
 ### 다중 모델 지원 현황
@@ -283,6 +308,10 @@ def test_learning_path_generation():
 ### 우선순위 및 폴백 전략
 
 #### 구현된 LLM Registry 시스템:
+
+<details>
+<summary> LLM Registry 구현 코드</summary>
+
 ```python
 # backend/shared/llm/registry.py 
 class LLMRegistry:
@@ -296,11 +325,12 @@ registry = LLMRegistry()
 preferred_order = ["gemini", "openai", "claude"]
 ```
 
+</details>
+
 #### 폴백 시나리오
 1. **기본 모델 (Gemini)** → 무료 모델로 먼저 시도
 2. **자동 폴백 체인** → 실패 시 Gemini → OpenAI → Claude 순서로 시도
 3. **모든 Provider 실패** → 명확한 에러 메시지와 함께 HTTP 500 반환
-4. **실시간 모니터링** → 각 Provider별 성공률 및 응답시간 로깅
 
 #### 모델 관리 
 - **Provider Registry**: 새로운 LLM 추가 시 최소 코드 변경 (현재 OpenAI, Claude, Gemini 운영)
@@ -324,13 +354,17 @@ preferred_order = ["gemini", "openai", "claude"]
 
 #### 현재 구현된 프롬프트 전략:
 
-1. **구조화된 입력**: 이력서 정보를 명확한 카테고리로 분류
-2. **컨텍스트 제공**: 사용자의 경력 단계와 목표 직무 고려
-3. **구체성 요구**: "일반적인" 질문이 아닌 개인 맞춤형 질문 생성
-4. **카테고리화**: 기술/경험/문제해결/인성별로 구분된 질문
-5. **난이도 조절**: 경력 연수에 따른 적절한 난이도 설정
+1. **다차원 질문 유형 분석**: 8가지 면접 질문 유형으로 종합적 역량 검증
+2. **실무 시나리오 기반**: 실제 운영 상황과 장애 대응 중심의 질문 설계
+3. **프로젝트 심층 분석**: 단순 기술 사용이 아닌 구현 세부사항과 의사결정 과정 탐구
+4. **장점/단점 체계적 분석**: 이력서 기반 강점 심화 + 약점 보완 학습 경로 생성
+5. **개인맞춤형 근거 제시**: 각 질문과 학습 경로의 제시 이유를 구체적으로 설명
 
 #### 면접 질문 프롬프트 예시:
+
+<details>
+<summary> 프롬프트 엔지니어링 예시</summary>
+
 ```
 당신은 경험이 풍부한 기술 면접관입니다.
 다음 이력서 정보를 바탕으로 실제 면접에서 나올 법한 심층적인 질문 5개를 생성해주세요.
@@ -348,34 +382,113 @@ preferred_order = ["gemini", "openai", "claude"]
 3. 각 질문은 카테고리(기술/경험/문제해결/인성)와 난이도(초급/중급/고급) 포함
 ```
 
-### 구현된 프롬프팅 최적화:
+</details>
 
-#### 1. **✅ Few-Shot Learning (Interview Service)**
-- **구현 완료**: 우수 질문 예시를 프롬프트에 포함 (3년차, 1년차 개발자 예시)
-- **경력별 가이드라인**: 0-2년, 3-5년, 6년+ 경력별 맞춤 질문 전략
-- **피해야 할 질문 유형**: 명시적인 안티 패턴 가이드라인 제공
+### 구현된 고도화된 프롬프팅 최적화:
 
-#### 2. **✅ 역할 기반 프롬프팅 (구현 완료)**
-- **Interview Service**: "경험이 풍부한 HR 전문가이자 기술 면접관" 역할
-- **Learning Service**: "경험이 풍부한 커리어 코치이자 기술 멘토" 역할
-- **구체적 페르소나**: 각 서비스별 전문가 관점 적용
+#### 1. **다차원 면접 질문 생성 (Interview Service v3.0)**
 
-#### 3. **✅ 구조화된 출력 (JSON Schema)**
-- **일관된 응답 형식**: 카테고리, 난이도, 우선순위 등 메타데이터 포함
-- **검증 로직**: JSON 파싱 오류 및 빈 응답 처리
-- **코드 블록 처리**: ```json``` 마크다운 블록 자동 파싱
+<details>
+<summary> 8가지 질문 유형 체계</summary>
 
-### 진행 중인 프롬프팅 개선:
+**구현된 질문 유형들:**
+1. **Implementation**: 구체적 구현 방법 (예: "WebSocket 연결 상태 관리를 어떻게 구현하셨나요?")
+2. **Trade-off**: 설계 결정과 트레이드오프 (예: "Spring Cloud Gateway vs Nginx 선택 기준은?")
+3. **Performance**: 성능 최적화 경험 (예: "Virtual Thread 도입 후 성능 지표 변화는?")
+4. **Reliability**: 장애 대응과 안정성 (예: "Redis 다운 시 실시간 채팅 영향과 대응 방안은?")
+5. **Scalability**: 확장성과 운영 (예: "동시 사용자 10배 증가 시 병목과 해결책은?")
+6. **Quality**: 코드 품질과 테스트 (예: "비동기 메시지 처리 테스트 전략은?")
+7. **Collaboration**: 협업과 의사결정 (예: "MSA API 스펙 팀 협의 과정은?")
+8. **Business**: 비즈니스 이해도 (예: "실시간 채팅이 매칭 플랫폼에 핵심인 이유는?")
 
-#### 🔄 **Chain-of-Thought (진행 예정)**
+**Before vs After:**
+- **기존**: "Kafka를 왜 사용하셨나요?" (단순 기술 질문)
+- **개선**: "Kafka 토픽 설계와 Consumer group 구성 기준, 데이터 유실 방지 방안은?" (실무 구현 세부사항)
+
+</details>
+
+#### 2. **장점/단점 체계적 분석 기반 학습 경로 (Learning Service v2.0)**
+
+<details>
+<summary>체계적 이력서 분석 프로세스</summary>
+
+**3단계 분석 과정:**
+1. **장점 식별**: 프로젝트 성과, 기술 활용도, 차별화 포인트 분석
+2. **단점 식별**: 경력 대비 부족 영역, 시장 요구사항 gap 파악
+3. **학습 방향 설정**: 강점 심화 + 약점 보완 학습 경로 생성
+
+**응답 구조 개선:**
+```json
+{
+  "analysis": {
+    "strengths": ["장점1: 구체적 근거", "장점2: 구체적 근거"],
+    "weaknesses": ["단점1: 구체적 근거", "단점2: 구체적 근거"]
+  },
+  "learning_paths": [
+    {
+      "type": "strength",  // 강점 심화
+      "title": "Kafka 고급 스트리밍 아키텍처",
+      "reason": "이미 Kafka+MSA 경험이 뛰어나므로 전문성 강화"
+    },
+    {
+      "type": "weakness",  // 약점 보완
+      "title": "분산 시스템 모니터링 구축",
+      "reason": "운영 및 장애 대응 경험 부족으로 보완 필요"
+    }
+  ]
+}
+```
+
+</details>
+
+#### 3. **실무 시나리오 기반 질문 설계**
+- **운영 상황 시뮬레이션**: "실제 서비스 운영 중 ○○ 장애 발생 시..." 
+- **확장성 검증**: "트래픽 10배 증가 시 병목 지점과 해결 전략..."
+- **의사결정 과정 탐구**: "기술 선택의 근거와 대안 검토 과정..."
+
+#### 4. **프로젝트 심층 분석 방향**
+- **구현 세부사항**: "단순히 Redis 사용이 아닌 어떤 데이터 구조를 어떻게 활용했는지"
+- **기술적 도전**: "마이크로서비스 간 데이터 일관성 보장 방법"
+- **성과 측정**: "Virtual Thread 도입으로 어떤 메트릭이 얼마나 개선되었는지"
+
+#### 5. **실제 테스트 성과**
+
+<details>
+<summary>실제 생성된 질문 예시</summary>
+
+**Before (기존 단순 패턴):**
+```
+- "Kafka를 왜 사용하셨나요?"
+- "Redis의 장점이 무엇인가요?"
+```
+
+**After (개선된 다차원 질문):**
+```
+1. Implementation: "Kafka의 토픽 설계는 어떻게 하셨고, Consumer group은 어떤 기준으로 구성하셨나요? 데이터가 유실되지 않도록 어떤 방안을 적용하셨는지..."
+
+2. Trade-off: "모놀리식 아키텍처 대신 MSA를 선택하신 주된 이유는 무엇인가요? MSA 도입으로 인한 복잡성은 어떻게 관리하셨는지..."
+
+3. Reliability: "RabbitMQ 서버가 예기치 않게 다운되면 크롤링 요청들은 어떻게 되며, 어떤 복구 전략을 설계하셨나요?"
+```
+
+**품질 개선 지표:**
+- 질문 다양성: 단일 패턴 → 8가지 유형 골고루 분포
+- 실무 적합성: 이론적 질문 → 실제 경험 검증 질문
+- 개인맞춤성: 일반적 질문 → 구체적 프로젝트 기반 질문
+
+</details>
+
+### 추후 프롬프팅 개선 반향
+
+####  **Chain-of-Thought**
 - 질문 생성 과정의 추론 단계 명시
 - "왜 이 질문이 중요한가" 설명 포함
 
-#### 🔄 **동적 난이도 조정 (진행 예정)**
+####  **동적 난이도 조정**
 - 경력 연수별 자동 난이도 조정 시스템
 - 기술 스택 복잡도 기반 질문 깊이 조절
 
-#### 🔄 **품질 검증 로직 (진행 예정)**
+####  **품질 검증 로직**
 - A/B 테스트를 통한 프롬프트 성능 비교
 - 사용자 피드백 기반 프롬프트 최적화
 
@@ -395,6 +508,10 @@ preferred_order = ["gemini", "openai", "claude"]
 5. **모듈화**: 중복 코드 제거 및 재사용 가능한 유틸리티
 
 #### `.claude/setting.json`
+
+<details>
+<summary> Claude AI 설정 파일</summary>
+
 ```json
 {
   "coding_style": {
@@ -412,7 +529,13 @@ preferred_order = ["gemini", "openai", "claude"]
 }
 ```
 
+</details>
+
 #### `copilot-instructions.md`
+
+<details>
+<summary> GitHub Copilot 가이드라인</summary>
+
 ```markdown
 # GitHub Copilot 사용 가이드라인
 
@@ -427,6 +550,8 @@ preferred_order = ["gemini", "openai", "claude"]
 - 하드코딩된 설정값
 - 타입 힌트 누락
 ```
+
+</details>
 ---
 
 ## 추후 확장성을 위한 고려사항
@@ -444,6 +569,10 @@ preferred_order = ["gemini", "openai", "claude"]
 
 ### 2. PDF 파싱 및 멀티모달 AI
 #### 구현 계획:
+
+<details>
+<summary> PDF 처리 파이프라인</summary>
+
 ```python
 # PDF 처리 파이프라인
 PDF → Text Extraction → Structured Data → LLM Analysis
@@ -454,6 +583,8 @@ PDF → Text Extraction → Structured Data → LLM Analysis
 - GPT-4V/Claude Vision: 이미지 기반 이력서 분석
 - Tesseract OCR: 스캔된 문서 처리
 ```
+
+</details>
 
 #### 고려사항:
 - **파일 크기 제한**: 10MB 이하로 제한
