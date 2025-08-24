@@ -4,9 +4,12 @@ Learning Service API 라우트
 
 from shared.utils.logger import setup_logger
 import asyncio
+import re
+from urllib.parse import unquote
 from fastapi import APIRouter, HTTPException
 from sse_starlette.sse import EventSourceResponse
 from datetime import datetime
+import json
 
 from .service import generate_learning_path_service
 from .schemas import LearningPathCreateResponse
@@ -14,6 +17,7 @@ from database import get_learning_collection
 from tasks import get_task_progress_from_redis
 from shared.celery_app import celery_app
 from config import settings
+from shared.utils.error_handler import LearningErrors, ResumeErrors
 
 logger = setup_logger("learning-service", settings.log_level)
 
@@ -29,16 +33,37 @@ async def generate_learning_path(unique_key: str):
     Note:
         기본 LLM: Gemini (폴백: Gemini -> OpenAI -> Claude)
     """
-    # Gemini 고정 사용
-    provider = "gemini"
-    
     try:
+        # URL 디코딩 및 입력 검증
+        decoded_key = unquote(unique_key)
+        
+        # 입력 값 검증
+        if not decoded_key or decoded_key.strip() == "":
+            raise LearningErrors.validation_error("unique_key", "Unique key cannot be empty")
+        
+        # 키 정리
+        cleaned_key = decoded_key.strip()
+        
+        # 길이 검증
+        if len(cleaned_key) > 200:
+            raise LearningErrors.validation_error("unique_key", "Unique key is too long (max 200 characters)")
+        
+        if len(cleaned_key) < 1:
+            raise LearningErrors.validation_error("unique_key", "Unique key is too short (min 1 character)")
+        
+        # 제어 문자 검증
+        if re.search(r'[\x00-\x1f\x7f-\x9f]', cleaned_key):
+            raise LearningErrors.validation_error("unique_key", "Unique key contains invalid characters")
+        
+        # Gemini 고정 사용
+        provider = "gemini"
+        
         # 학습 경로 생성
-        result = await generate_learning_path_service(unique_key, provider)
+        result = await generate_learning_path_service(cleaned_key, provider)
         
         return {
             "message": "Learning path generated successfully",
-            "unique_key": unique_key,
+            "unique_key": cleaned_key,
             "provider": provider,
             "model": result.get("model", "unknown"),  # 사용된 모델 정보 포함
             "analysis": result.get("analysis", {"strengths": [], "weaknesses": []}),
@@ -48,23 +73,45 @@ async def generate_learning_path(unique_key: str):
         }
         
     except Exception as e:
-        raise HTTPException(status_code=500, detail=f"Failed to generate learning path: {str(e)}")
+        if hasattr(e, 'error_code'):  # APIError인 경우
+            raise
+        if "Resume not found" in str(e):
+            raise ResumeErrors.not_found(unique_key)
+        raise LearningErrors.generation_failed(unique_key, str(e))
 
 @router.get("/{unique_key}/learning-path", response_model=dict)
 async def get_learning_path(unique_key: str):
     """unique_key로 학습 경로 조회"""
     try:
+        # URL 디코딩 및 입력 검증
+        decoded_key = unquote(unique_key)
+        
+        # 입력 값 검증
+        if not decoded_key or decoded_key.strip() == "":
+            raise LearningErrors.validation_error("unique_key", "Unique key cannot be empty")
+        
+        # 키 정리
+        cleaned_key = decoded_key.strip()
+        
+        # 길이 검증
+        if len(cleaned_key) > 200:
+            raise LearningErrors.validation_error("unique_key", "Unique key is too long (max 200 characters)")
+        
+        if len(cleaned_key) < 1:
+            raise LearningErrors.validation_error("unique_key", "Unique key is too short (min 1 character)")
+        
+        # 제어 문자 검증
+        if re.search(r'[\x00-\x1f\x7f-\x9f]', cleaned_key):
+            raise LearningErrors.validation_error("unique_key", "Unique key contains invalid characters")
+        
         # 학습 경로들 조회 (최신 순으로 정렬)
         learning_collection = get_learning_collection()
         learning_paths = await learning_collection.find(
-            {"unique_key": unique_key}
+            {"unique_key": cleaned_key}
         ).sort("created_at", -1).to_list(length=10)  # 최근 10개까지
         
         if not learning_paths:
-            raise HTTPException(
-                status_code=404, 
-                detail="No learning paths found for this resume"
-            )
+            raise LearningErrors.not_found(cleaned_key)
         
         # 가장 최근 것을 기본으로 반환
         latest = learning_paths[0]
@@ -80,13 +127,10 @@ async def get_learning_path(unique_key: str):
             "total_generated": len(learning_paths)
         }
         
-    except HTTPException:
-        raise
     except Exception as e:
-        raise HTTPException(
-            status_code=500, 
-            detail=f"Failed to retrieve learning paths: {str(e)}"
-        )
+        if hasattr(e, 'error_code'):  # APIError인 경우
+            raise
+        raise LearningErrors.retrieval_failed(unique_key, str(e))
 
 @router.get("/health")
 async def health_check():

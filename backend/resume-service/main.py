@@ -2,13 +2,21 @@
 Resume Service 메인 애플리케이션
 """
 
-from fastapi import FastAPI
+from fastapi import FastAPI, HTTPException, Request
 from fastapi.middleware.cors import CORSMiddleware
+from fastapi.exceptions import RequestValidationError
 from contextlib import asynccontextmanager
 
 from config import settings
 from database import connect_to_mongo, close_mongo_connection
 from src.routes import router
+from shared.utils.error_handler import (
+    APIError,
+    handle_api_error,
+    handle_http_exception,
+    handle_validation_error,
+    handle_general_exception
+)
 
 @asynccontextmanager
 async def lifespan(app: FastAPI):
@@ -42,6 +50,12 @@ app.add_middleware(
     allow_methods=["*"],
     allow_headers=["*"],
 )
+
+# 에러 핸들러 등록
+app.add_exception_handler(APIError, handle_api_error)
+app.add_exception_handler(HTTPException, handle_http_exception)
+app.add_exception_handler(RequestValidationError, handle_validation_error)
+app.add_exception_handler(Exception, handle_general_exception)
 
 # 라우터 등록
 app.include_router(router, prefix=settings.api_prefix, tags=["resumes"])

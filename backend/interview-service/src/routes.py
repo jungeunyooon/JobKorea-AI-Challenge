@@ -5,6 +5,8 @@ Interview 서비스 API 라우트
 from shared.utils.logger import setup_logger
 import json
 import asyncio
+import re
+from urllib.parse import unquote
 from fastapi import APIRouter, HTTPException
 from sse_starlette.sse import EventSourceResponse
 from datetime import datetime
@@ -14,6 +16,7 @@ from src.service import generate_interview_questions_service
 from tasks import get_task_progress_from_redis
 from shared.celery_app import celery_app
 from config import settings
+from shared.utils.error_handler import InterviewErrors, ResumeErrors
 
 logger = setup_logger("interview-service", settings.log_level)
 
@@ -29,39 +32,83 @@ async def generate_interview_questions(unique_key: str):
     Note:
         기본 LLM: Gemini (폴백: Gemini -> OpenAI -> Claude)
     """
-    # Gemini 고정 사용
-    provider = "gemini"
-    
     try:
-        logger.error(f"Routes: About to call generate_interview_questions_service with {unique_key}, {provider}")
+        # URL 디코딩 및 입력 검증
+        decoded_key = unquote(unique_key)
+        
+        # 입력 값 검증
+        if not decoded_key or decoded_key.strip() == "":
+            raise InterviewErrors.validation_error("unique_key", "Unique key cannot be empty")
+        
+        # 키 정리
+        cleaned_key = decoded_key.strip()
+        
+        # 길이 검증 
+        if len(cleaned_key) > 200:
+            raise InterviewErrors.validation_error("unique_key", "Unique key is too long (max 200 characters)")
+        
+        if len(cleaned_key) < 1:
+            raise InterviewErrors.validation_error("unique_key", "Unique key is too short (min 1 character)")
+        
+        # 제어 문자 검증
+        if re.search(r'[\x00-\x1f\x7f-\x9f]', cleaned_key):
+            raise InterviewErrors.validation_error("unique_key", "Unique key contains invalid characters")
+        
+        # Gemini 고정 사용
+        provider = "gemini"
+        
+        logger.error(f"Routes: About to call generate_interview_questions_service with {cleaned_key}, {provider}")
         # 면접 질문 생성 및 저장
-        result = await generate_interview_questions_service(unique_key, provider)
+        result = await generate_interview_questions_service(cleaned_key, provider)
         logger.error(f"Routes: Service call completed successfully")
         
         return {
             "interview_id": str(result["interview_id"]),
             "resume_id": str(result["resume_id"]),
-            "unique_key": unique_key,
+            "unique_key": cleaned_key,
             "provider": provider,
             "model": result.get("model", "unknown"),
             "questions": result["questions"],
             "generated_at": result["generated_at"]
         }
         
-    except HTTPException:
-        raise
     except Exception as e:
-        raise HTTPException(status_code=500, detail=f"Failed to generate interview questions: {str(e)}")
+        if hasattr(e, 'error_code'):  # APIError인 경우
+            raise
+        if "Resume not found" in str(e):
+            raise ResumeErrors.not_found(unique_key)
+        raise InterviewErrors.generation_failed(unique_key, str(e))
 
 @router.get("/{unique_key}/questions", response_model=dict)
 async def get_interview_questions(unique_key: str):
     """unique_key로 면접 질문 조회"""
     try:
+        # URL 디코딩 및 입력 검증
+        decoded_key = unquote(unique_key)
+        
+        # 입력 값 검증
+        if not decoded_key or decoded_key.strip() == "":
+            raise InterviewErrors.validation_error("unique_key", "Unique key cannot be empty")
+        
+        # 키 정리
+        cleaned_key = decoded_key.strip()
+        
+        # 길이 검증
+        if len(cleaned_key) > 200:
+            raise InterviewErrors.validation_error("unique_key", "Unique key is too long (max 200 characters)")
+        
+        if len(cleaned_key) < 1:
+            raise InterviewErrors.validation_error("unique_key", "Unique key is too short (min 1 character)")
+        
+        # 제어 문자 검증
+        if re.search(r'[\x00-\x1f\x7f-\x9f]', cleaned_key):
+            raise InterviewErrors.validation_error("unique_key", "Unique key contains invalid characters")
+        
         # 면접 질문들 조회
-        interview = await get_interview_by_unique_key(unique_key)
+        interview = await get_interview_by_unique_key(cleaned_key)
         
         if not interview:
-            raise HTTPException(status_code=404, detail="No interview questions found for this resume")
+            raise InterviewErrors.not_found(cleaned_key)
         
         return {
             "unique_key": interview["unique_key"],
@@ -69,10 +116,10 @@ async def get_interview_questions(unique_key: str):
             "created_at": interview["created_at"]
         }
         
-    except HTTPException:
-        raise
     except Exception as e:
-        raise HTTPException(status_code=500, detail=f"Failed to retrieve interview questions: {str(e)}")
+        if hasattr(e, 'error_code'):  # APIError인 경우
+            raise
+        raise InterviewErrors.retrieval_failed(unique_key, str(e))
 
 @router.get("/health")
 async def health_check():
