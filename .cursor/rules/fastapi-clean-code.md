@@ -1,8 +1,3 @@
----
-description: FastAPI 프로젝트를 위한 클린 코드 및 유지보수성 향상 규칙
-alwaysApply: true
----
-
 # FastAPI Clean Code Rules
 
 ## 핵심 원칙

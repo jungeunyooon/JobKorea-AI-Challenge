@@ -1,0 +1,108 @@
+{
+    "project_context": {
+        "name": "AI Challenge - Interview Preparation API",
+        "description": "구직자의 이력서 기반 맞춤형 면접 질문 생성 및 학습 경로 추천 백엔드 API",
+        "architecture": "MSA (Microservices Architecture)",
+        "tech_stack": [
+            "FastAPI",
+            "MongoDB",
+            "Docker",
+            "Traefik",
+            "LLM (OpenAI/Claude/Gemini)"
+        ],
+        "domain_structure": [
+            "resume-service: 이력서 CRUD 관리",
+            "interview-service: AI 기반 면접 질문 생성",
+            "learning-service: 개인 맞춤형 학습 경로 추천",
+            "shared: 공통 모듈 (LLM, DB, 유틸리티)"
+        ]
+    },
+    "coding_principles": {
+        "paradigm": "함수형 프로그래밍 우선",
+        "design_patterns": [
+            "단일 책임 원칙 (SRP)",
+            "조기 반환 (Early Return)",
+            "의존성 주입 (Dependency Injection)",
+            "완전한 타입 힌트"
+        ],
+        "code_quality": [
+            "15줄 이하 함수 권장",
+            "중복 코드 제거",
+            "명확한 네이밍",
+            "에러 우선 처리"
+        ]
+    },
+    "fastapi_conventions": {
+        "routing": "라우터별 분리 (/api/v1/{service}/{resource})",
+        "error_handling": "HTTPException 사용, 표준화된 에러 메시지",
+        "validation": "Pydantic 모델 적극 활용",
+        "async_patterns": "모든 DB 작업은 async/await",
+        "dependency_injection": "Depends()를 통한 명확한 의존성 관리"
+    },
+    "llm_integration": {
+        "providers": [
+            "gemini (기본)",
+            "openai (폴백1)",
+            "claude (폴백2)"
+        ],
+        "prompt_engineering": [
+            "YAML 기반 프롬프트 관리",
+            "Few-Shot Learning 활용",
+            "JSON Schema 강제",
+            "Chain-of-Thought 추론"
+        ],
+        "error_handling": "LLM 응답 파싱 실패 시 재시도 로직"
+    },
+    "testing_strategy": {
+        "patterns": [
+            "Given-When-Then (BDD)",
+            "Table Driven Test",
+            "Flaky Test 대응"
+        ],
+        "tools": [
+            "pytest",
+            "pytest-asyncio",
+            "pytest-rerunfailures",
+            "httpx"
+        ],
+        "coverage": "최소 80% 코드 커버리지",
+        "integration_tests": "실제 API 엔드포인트 테스트"
+    },
+    "collaboration_guidelines": {
+        "code_review": [
+            "타입 힌트 완성도 확인",
+            "함수 길이 및 책임 범위 검토",
+            "에러 핸들링 적절성 확인",
+            "테스트 커버리지 검증"
+        ],
+        "commit_convention": "feat/fix/refactor/test/docs 접두사 사용",
+        "documentation": "API 문서 자동 생성 (FastAPI Swagger)",
+        "deployment": "Docker 컨테이너 기반, Traefik 게이트웨이"
+    },
+    "ai_assistance_preferences": {
+        "code_generation": [
+            "항상 타입 힌트 포함",
+            "에러 케이스 먼저 처리",
+            "docstring 자동 생성",
+            "테스트 코드 함께 제공"
+        ],
+        "refactoring": [
+            "함수 분할 우선 제안",
+            "중복 코드 공통화",
+            "성능 최적화 아이디어",
+            "보안 취약점 검토"
+        ],
+        "debugging": [
+            "로그 기반 문제 추적",
+            "단계별 원인 분석",
+            "해결책과 예방책 함께 제시",
+            "관련 테스트 케이스 추가"
+        ]
+    },
+    "conversation_style": {
+        "response_format": "명확하고 구체적인 설명",
+        "code_examples": "실행 가능한 예제 코드 제공",
+        "best_practices": "업계 표준 및 모범 사례 적용",
+        "learning_approach": "원리 설명 후 실습 코드 제공"
+    }
+}

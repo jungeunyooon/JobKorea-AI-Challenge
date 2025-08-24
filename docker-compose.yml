@@ -31,9 +31,8 @@ services:
     build: 
       context: ./backend
       dockerfile: resume-service/Dockerfile
-    environment:
-      - mongodb_url=mongodb://admin:password123@mongodb:27017/interview_coach?authSource=admin
-      - database_name=interview_coach
+    env_file:
+      - .env
     depends_on:
       - mongodb
       - traefik
@@ -52,9 +51,8 @@ services:
     build: 
       context: ./backend
       dockerfile: interview-service/Dockerfile
-    environment:
-      - mongodb_url=mongodb://admin:password123@mongodb:27017/interview_coach?authSource=admin
-      - database_name=interview_coach
+    env_file:
+      - .env
     depends_on:
       - mongodb
       - traefik
@@ -73,9 +71,8 @@ services:
     build: 
       context: ./backend
       dockerfile: learning-service/Dockerfile
-    environment:
-      - mongodb_url=mongodb://admin:password123@mongodb:27017/interview_coach?authSource=admin
-      - database_name=interview_coach
+    env_file:
+      - .env
     depends_on:
       - mongodb
       - traefik
@@ -94,10 +91,12 @@ services:
     image: mongo:7.0
     ports:
       - "27017:27017"
+    env_file:
+      - .env
     environment:
-      - MONGO_INITDB_ROOT_USERNAME=admin
-      - MONGO_INITDB_ROOT_PASSWORD=password123
-      - MONGO_INITDB_DATABASE=interview_coach
+      - MONGO_INITDB_ROOT_USERNAME=${MONGO_INITDB_ROOT_USERNAME}
+      - MONGO_INITDB_ROOT_PASSWORD=${MONGO_INITDB_ROOT_PASSWORD}
+      - MONGO_INITDB_DATABASE=${MONGO_INITDB_DATABASE}
     volumes:
       - mongodb_data:/data/db
       - ./backend/init-mongo.js:/docker-entrypoint-initdb.d/init-mongo.js:ro
