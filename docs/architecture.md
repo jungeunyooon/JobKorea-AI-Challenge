@@ -57,18 +57,18 @@
 2. **면접 질문 생성 (동기)**: Client → Interview Service → LLM → MongoDB
 
 ### **비동기 처리 (Asynchronous)**
-3. **면접 질문 생성 (비동기)**:
+1. **면접 질문 생성 (비동기)**:
    - Client → Interview Service → Celery Task → RabbitMQ Queue
    - Celery Worker → LLM API → MongoDB
    - 진행률 추적: Redis → SSE → Client (실시간 업데이트)
 
-4. **학습 경로 생성 (비동기)**:
+2. **학습 경로 생성 (비동기)**:
    - Client → Learning Service → Celery Task → RabbitMQ Queue
    - Celery Worker → LLM API → MongoDB
    - 진행률 추적: Redis → SSE → Client (실시간 업데이트)
 
-5. **폴백 처리**: LLM 실패 시 자동으로 다른 Provider로 전환
-6. **실시간 모니터링**: Flower Dashboard로 Celery 작업 상태 확인
+3. **폴백 처리**: LLM 실패 시 자동으로 다른 Provider로 전환
+4. **실시간 모니터링**: Flower Dashboard로 Celery 작업 상태 확인
 
 ## 기술 스택 선정 이유
 
