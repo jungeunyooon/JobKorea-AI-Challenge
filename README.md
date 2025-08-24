@@ -37,4 +37,4 @@ curl http://api.localhost/api/v1/resumes/health
 - **Claude**: `CLAUDE_API_KEY` 등 Claude 관련 설정  
 - **Gemini**: `GEMINI_API_KEY` 등 Gemini 관련 설정
 
-자세한 설정은 `env.example` 파일을 참고하세요. 
+자세한 설정은 [`env.example`](./env.example) 파일을 참고하세요. 
