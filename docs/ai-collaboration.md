@@ -52,6 +52,8 @@ Gemini → OpenAI → Claude 순서로 폴백하는데,
 ```
 
 ### Cursor IDE - 컨텍스트 기반 편집
+- [Cursor Rules Guide](https://github.com/PatrickJS/awesome-cursorrule) 를 참고하여 만들었습니다.
+
 **최적 활용 시나리오:**
 - 파일 간 일관성 유지
 - 프로젝트 전체 리팩토링
