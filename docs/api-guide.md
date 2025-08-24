@@ -168,25 +168,7 @@ curl -X POST "http://api.localhost/api/v1/learning/김개발_1/learning-path"
   "generated_at": "2024-01-15T10:35:00Z"
 }
 ```
-
-## 에러 처리
-
-### 공통 에러 응답 형식
-```json
-{
-  "detail": "Error message",
-  "error_code": "RESUME_NOT_FOUND",
-  "timestamp": "2024-01-15T10:30:00Z"
-}
-```
-
-### 주요 에러 코드
-- `400` - 잘못된 요청 (validation error)
-- `404` - 리소스를 찾을 수 없음
-- `422` - 처리할 수 없는 엔티티
-- `500` - 서버 내부 오류
-- `503` - AI 서비스 이용 불가
-
+ 
 ## 개발 환경 설정
 
 ### 1. Hosts 파일 설정
