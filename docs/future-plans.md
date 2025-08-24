@@ -2,7 +2,30 @@
 
 > AI Challenge API의 확장성을 위한 로드맵 및 기술적 고려사항
 
-## 1. PDF 파싱 및 멀티모달 AI
+## 1. 비동기 처리 실패 전략 및 장애 복구
+
+### Dead Letter Queue (DLQ) 구현:
+- **RabbitMQ DLQ**: 실패한 메시지를 별도 큐로 이동하여 데이터 손실 방지
+- **Redis DLQ**: 실패 작업의 상세 정보(에러 원인, 재시도 횟수, 원본 데이터) 저장
+- **처리 파이프라인**: 원본 큐 → 처리 → 실패 시 재시도 큐 → 최종 실패 시 DLQ
+
+### 재시도 전략:
+- **지수 백오프**: 재시도 간격을 점진적으로 증가시켜 시스템 부하 완화
+- **에러별 커스텀 로직**: Rate Limit은 5분 후, Service Unavailable은 1분 후 재시도
+- **Jitter 적용**: 동시 재시도로 인한 시스템 과부하 방지
+
+### 장애 복구 메커니즘:
+- **Circuit Breaker**: LLM 서비스 장애 시 자동 차단 및 폴백
+- **Health Check**: 주기적인 서비스 상태 모니터링
+- **Graceful Degradation**: 서비스 레벨별 기능 축소 운영
+- **Manual Retry**: DLQ의 실패한 작업 수동 재처리
+
+### 모니터링 및 알림:
+- **Flower + Prometheus**: 실시간 작업 상태 및 성능 지표 모니터링
+- **DLQ 임계치 알림**: 누적된 실패 작업이 임계치 초과 시 Slack 알림
+- **SLA 추적**: 작업별 응답 시간 목표 설정 및 모니터링
+
+## 2. PDF 파싱 및 멀티모달 AI
 
 ### 구현 계획:
 
@@ -28,7 +51,7 @@ PDF → Text Extraction → Structured Data → LLM Analysis
 - **형식 지원**: PDF, DOC, DOCX, 이미지 파일
 - **개인정보 보호**: 민감 정보 자동 마스킹
 
-## 2. LLM Batch 처리
+## 3. LLM Batch 처리
 
 ### 비용 최적화 전략:
 ```python
@@ -46,7 +69,7 @@ batch_requests = [
 - **스케줄링**: 야간 시간대 배치 처리
 - **우선순위**: 실시간 vs 배치 처리 구분
 
-## 3. 검색 기반 신뢰성 (RAG & External Knowledge)
+## 4. 검색 기반 신뢰성 (RAG & External Knowledge)
 
 ### RAG (Retrieval Augmented Generation) 구현:
 ```python
@@ -67,7 +90,7 @@ Knowledge Base:
 - **Stack Overflow API**: 기술별 학습 리소스
 
 
-## 4. Rate Limiting 및 트래픽 제어
+## 5. Rate Limiting 및 트래픽 제어
 
 ### 다층 Rate Limiting:
 ```python
@@ -89,7 +112,7 @@ Knowledge Base:
 - **SlowAPI**: FastAPI Rate Limiting 미들웨어
 - **Nginx**: L4 레벨 트래픽 제어
 
-## 5. LLM 비용 최적화 전략
+## 6. LLM 비용 최적화 전략
 
 ### 스마트 라우팅:
 ```python
@@ -108,7 +131,7 @@ def select_model(request_complexity):
 - **임베딩 기반**: 이력서 유사도 측정 후 캐시 활용
 - **TTL 관리**: 시간 기반 캐시 무효화
 
-## 6. 응답 시간 기반 폴백 전략
+## 7. 응답 시간 기반 폴백 전략
 
 ### 지능형 폴백:
 ```python
