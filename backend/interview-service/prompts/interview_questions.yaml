@@ -125,7 +125,7 @@ human_prompt_template: |
   - question: 실제 질문 본문 (프로젝트명 포함)
   - what_good_answers_cover: 좋은 답변 요소 2-3개 배열
 
-  출력은 JSON 스키마 형식으로만 제공하세요. 출력은 최대 1000자 이내로 제한하세요.
+  출력은 JSON 스키마 형식으로만 제공하세요. 각 질문은 간결하고 명확하게 작성하세요.
 
 # 출력 스키마
 output_schema:

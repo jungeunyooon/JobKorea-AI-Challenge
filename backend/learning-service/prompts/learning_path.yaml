@@ -113,7 +113,7 @@ human_prompt_template: |
   - resources: 구체적 학습 리소스 3개
   - link: 실제 학습 리소스 URL
 
-  출력은 JSON 스키마 형식으로만 제공하세요. 출력은 최대 1000자 이내로 제한하세요.
+    출력은 JSON 스키마 형식으로만 제공하세요. 각 항목은 간결하고 명확하게 작성하세요.
 
 # 출력 스키마
 output_schema:

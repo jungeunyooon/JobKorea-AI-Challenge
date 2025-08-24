@@ -1,0 +1,60 @@
+{
+    "interview_id": "68ab2590d08661fba9bc0a68",
+    "resume_id": "68ab2484d6b0a03283b2ca11",
+    "unique_key": "test_1",
+    "provider": "gemini",
+    "model": "gemini-2.5-flash",
+    "questions": [
+        {
+            "difficulty": "medium",
+            "topic": "Reliability, Kafka, MSA",
+            "question": "주식 캔들차트 시각화 및 실시간 시세 서비스에서 주식 데이터 처리 마이크로서비스 중 하나가 갑자기 장애로 다운된다면, 실시간 시세 제공에 어떤 영향이 발생하며, 이를 최소화하기 위해 어떤 방식으로 대응하시겠습니까?",
+            "what_good_answers_cover": [
+                "장애 발생 시 서비스 연속성을 위한 설계 고려사항 (예: 서킷 브레이커, 타임아웃)",
+                "장애 감지 및 복구 전략 (예: 자동 재시작, 롤백, 알림 시스템)",
+                "데이터 일관성 유지 방안 및 장애가 미치는 비즈니스 영향 분석"
+            ]
+        },
+        {
+            "difficulty": "medium",
+            "topic": "Scalability, Redis",
+            "question": "주식 캔들차트 서비스에서 Redis를 사용하여 실시간 데이터를 캐싱하거나 세션을 관리하셨을 텐데, 동시 접속 사용자 수가 현재의 10배로 급증했을 때 Redis가 병목이 될 수 있는 지점은 어디라고 생각하시며, 이를 해결하기 위한 확장 전략은 무엇입니까?",
+            "what_good_answers_cover": [
+                "Redis의 확장 모델 (예: 클러스터, 샤딩, 레플리카) 선택 기준",
+                "Redis 성능 모니터링 지표 및 병목 원인 분석 능력",
+                "캐싱 전략 (예: 데이터 만료 정책, 일관성 유지) 최적화 방안"
+            ]
+        },
+        {
+            "difficulty": "hard",
+            "topic": "Trade-off, Kafka, RabbitMQ, Message Queue",
+            "question": "개인 프로젝트 TecheerZip에서는 RabbitMQ를, 주식 시세 서비스에서는 Kafka를 사용하셨는데, 두 메시지 큐 시스템을 선택할 때 각각 어떤 기술적/비즈니스적 요구사항을 고려하셨고, 각 시스템의 장단점 및 트레이드오프는 무엇이었다고 생각하시나요?",
+            "what_good_answers_cover": [
+                "Kafka와 RabbitMQ의 핵심 아키텍처 및 동작 방식 차이점 설명",
+                "각 시스템이 적합한 사용 사례 (예: 스트리밍 vs. 태스크 큐잉) 분석",
+                "처리량, 메시지 내구성, 순서 보장, 운영 복잡도 측면에서의 트레이드오프"
+            ]
+        },
+        {
+            "difficulty": "medium",
+            "topic": "Implementation, MSA, API Gateway, FastAPI",
+            "question": "주식 캔들차트 서비스에서 마이크로서비스를 분리하고 API Gateway를 통해 요청을 라우팅하셨다고 했는데, FastAPI 환경에서 API Gateway의 라우팅 로직을 어떤 방식으로 구현하셨으며, 서비스 디스커버리는 어떻게 처리하셨나요?",
+            "what_good_answers_cover": [
+                "API Gateway의 역할 및 구현 방식 (예: 리버스 프록시, 라우팅 테이블 관리)",
+                "동적으로 마이크로서비스 인스턴스를 찾고 연결하는 서비스 디스커버리 방법",
+                "라우팅 규칙 정의 및 관리, 부하 분산 전략"
+            ]
+        },
+        {
+            "difficulty": "medium",
+            "topic": "Quality, RabbitMQ, Asynchronous Processing, Testing",
+            "question": "TecheerZip 프로젝트에서 RabbitMQ를 활용한 블로그 크롤링 요청의 비동기 처리 로직을 구현하셨는데, 이러한 비동기 메시지 처리 시스템의 안정성을 보장하기 위해 어떤 종류의 테스트를 수행하셨고, 테스트 과정에서 겪었던 어려움은 무엇이었습니까?",
+            "what_good_answers_cover": [
+                "메시지 발행자(Producer) 및 구독자(Consumer)에 대한 단위/통합 테스트 전략",
+                "메시지 처리의 멱등성(Idempotency) 보장 및 테스트 방법",
+                "비동기 시스템의 테스트 환경 구축 및 디버깅 어려움과 해결 경험"
+            ]
+        }
+    ],
+    "generated_at": "2025-08-24T14:45:36.827035"
+}

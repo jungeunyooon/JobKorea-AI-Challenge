@@ -1,0 +1,84 @@
+{
+    "message": "Learning path generated successfully",
+    "unique_key": "test_1",
+    "provider": "gemini",
+    "model": "gemini-2.5-flash",
+    "analysis": {
+        "strengths": [
+            "MSA 구현 및 분산 처리 경험: 주식 시세 서비스에서 Kafka와 API Gateway를 활용한 MSA 구축 및 분산 처리 경험이 명확합니다. FastAPI와 Spring Boot 등 다양한 프레임워크 사용 경험도 강점입니다.",
+            "메시지 큐 활용 비동기 처리: Kafka와 RabbitMQ를 모두 사용하여 비동기 처리 아키텍처를 구현한 경험은 높은 이해도를 보여줍니다.",
+            "클라우드 및 최적화 경험: AWS Lambda를 활용한 서버리스 이미지 리사이징으로 90% 이상의 성능 최적화를 달성한 것은 실질적인 문제 해결 능력과 클라우드 활용 능력을 보여줍니다. Docker와 Nginx 사용 경험도 긍정적입니다."
+        ],
+        "weaknesses": [
+            "운영 및 모니터링 심화 경험 부족: MSA 구현은 잘 했으나, 실제 서비스의 운영, 모니터링, 로깅, 장애 대응에 대한 깊이 있는 경험은 이력서에 명시되지 않았습니다.",
+            "분산 시스템의 고급 설계 및 일관성: MSA를 구현했지만, 분산 트랜잭션, 데이터 일관성, 복잡한 장애 시나리오 대응 등 고급 분산 시스템 설계 패턴에 대한 경험은 부족합니다.",
+            "데이터베이스 최적화 및 고가용성: MySQL, PostgreSQL, Redis를 사용했지만, 대규모 트래픽 환경에서의 고급 쿼리 최적화, DB 클러스터링, 복제, 샤딩 등 고가용성 설계 경험은 부족합니다.",
+            "보안 및 테스트 전략: API 보안(인증/인가), 취약점 관리, 그리고 분산 시스템 환경에서의 체계적인 테스트 전략(단위, 통합, E2E)에 대한 언급이 부족합니다."
+        ]
+    },
+    "summary": "MSA, 비동기 처리, 클라우드 활용 강점을 심화하고 운영, DB, 보안 등 백엔드 핵심 역량을 보완하여 성장을 목표합니다.",
+    "learning_paths": [
+        {
+            "type": "strength",
+            "title": "Kafka 고급 패턴 및 분산 트랜잭션",
+            "description": "주식 시세 Kafka 경험 바탕으로 Event Sourcing, Saga 패턴 학습.",
+            "reason": "Kafka MSA 구현 경험이 뛰어나므로 분산 트랜잭션, 고급 패턴으로 전문성 강화.",
+            "resources": [
+                "Kafka Streams",
+                "Event Sourcing 패턴",
+                "Saga 패턴"
+            ],
+            "link": "https://kafka.apache.org/documentation/streams/"
+        },
+        {
+            "type": "strength",
+            "title": "클라우드 네이티브 아키텍처 및 쿠버네티스",
+            "description": "AWS Lambda, Docker 경험을 바탕으로 컨테이너 오케스트레이션(K8s) 학습.",
+            "reason": "클라우드와 Docker 경험이 있으므로, 현대적 배포/운영의 핵심인 K8s 역량 강화.",
+            "resources": [
+                "Kubernetes Docs",
+                "AWS EKS",
+                "Helm"
+            ],
+            "link": "https://kubernetes.io/docs/home/"
+        },
+        {
+            "type": "weakness",
+            "title": "분산 시스템 모니터링 및 로깅",
+            "description": "MSA 환경에서 필수적인 모니터링, 로깅, 추적 시스템 구축.",
+            "reason": "MSA 구현은 뛰어나지만 운영 및 장애 대응 경험 부족으로 보완 필요.",
+            "resources": [
+                "Prometheus",
+                "Grafana",
+                "ELK Stack"
+            ],
+            "link": "https://prometheus.io/docs/introduction/overview/"
+        },
+        {
+            "type": "weakness",
+            "title": "관계형 데이터베이스 고급 최적화 및 설계",
+            "description": "MySQL/PostgreSQL 기반 고급 쿼리 최적화, 인덱싱, 고가용성 설계 학습.",
+            "reason": "DB 사용 경험은 있으나 대규모 환경의 최적화, 신뢰성 확보 역량 보완.",
+            "resources": [
+                "SQL Performance Tuning",
+                "Database Indexing",
+                "PostgreSQL Replication"
+            ],
+            "link": "https://www.postgresql.org/docs/current/performance-tips.html"
+        },
+        {
+            "type": "weakness",
+            "title": "API 보안 및 견고한 시스템 테스트",
+            "description": "FastAPI, Spring Boot 기반 API 보안(인증/인가) 및 분산 시스템 테스트 전략.",
+            "reason": "API 구현은 했으나 보안 및 테스트는 모든 백엔드에 필수적 역량이므로 보완.",
+            "resources": [
+                "OAuth 2.0",
+                "JWT",
+                "Spring Security",
+                "Integration Testing"
+            ],
+            "link": "https://oauth.net/2/"
+        }
+    ],
+    "generated_at": "2025-08-24T14:48:45.458412"
+}
