@@ -4,7 +4,7 @@
 
 ## 시스템 아키텍처 
 
-![Architecture](../Architecture.png)
+![Architecture](./Architecture.png)
 
 ## 도메인 설정
 
