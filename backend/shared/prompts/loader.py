@@ -5,7 +5,7 @@ YAML 기반 프롬프트 파일을 로드하고 템플릿을 렌더링
 
 import os
 import yaml
-from typing import Dict, List, Any, Optional
+from typing import Dict, Any
 from pathlib import Path
 import logging
 

@@ -2,10 +2,8 @@
 Resume Service CRUD 함수들
 """
 
-from motor.motor_asyncio import AsyncIOMotorDatabase
 from datetime import datetime
 from typing import List, Optional, Dict, Any
-import re
 from database import get_resumes_collection
 
 async def create_resume(resume_data: Dict[str, Any]) -> str:

@@ -2,7 +2,7 @@
 LLM 클라이언트 레지스트리 - 다중 제공자 관리 및 폴백 시스템
 """
 
-from typing import Dict, List, Optional, Type, Union
+from typing import Dict, List, Optional, Type
 import logging
 from .base import LLMClient
 from shared.config.base import BaseAppSettings

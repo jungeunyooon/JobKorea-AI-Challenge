@@ -6,16 +6,12 @@ import logging
 import json
 import asyncio
 from fastapi import APIRouter, HTTPException
-from fastapi.responses import StreamingResponse
 from sse_starlette.sse import EventSourceResponse
-from typing import List, Dict, Any
 from datetime import datetime
-from celery.result import AsyncResult
 
-from src.crud import get_interview_by_unique_key, create_interview_questions
+from src.crud import get_interview_by_unique_key
 from src.service import generate_interview_questions_service
-from src.schemas import InterviewQuestionsResponse
-from tasks import generate_interview_questions_async, get_task_progress_from_redis
+from tasks import get_task_progress_from_redis
 from shared.celery_app import celery_app
 
 logger = logging.getLogger(__name__)

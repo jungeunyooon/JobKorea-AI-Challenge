@@ -4,8 +4,7 @@
 import pytest
 import asyncio
 import httpx
-from typing import AsyncGenerator, Generator
-from fastapi.testclient import TestClient
+from typing import Generator
 
 # API 기본 URL
 API_BASE_URL = "http://api.localhost/api/v1"

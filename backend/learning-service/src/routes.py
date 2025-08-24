@@ -6,16 +6,13 @@ import logging
 import json
 import asyncio
 from fastapi import APIRouter, HTTPException
-from fastapi.responses import StreamingResponse
 from sse_starlette.sse import EventSourceResponse
-from typing import List, Dict, Any
 from datetime import datetime
-from celery.result import AsyncResult
 
 from .service import generate_learning_path_service
-from .schemas import LearningPathCreateResponse, LearningPathRequest
+from .schemas import LearningPathCreateResponse
 from database import get_learning_collection
-from tasks import generate_learning_path_async, get_task_progress_from_redis
+from tasks import get_task_progress_from_redis
 from shared.celery_app import celery_app
 
 logger = logging.getLogger(__name__)

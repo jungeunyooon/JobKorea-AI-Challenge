@@ -2,7 +2,7 @@
 이력서 데이터 포맷팅 공통 유틸리티
 """
 
-from typing import Dict, List, Any
+from typing import Dict, Any
 
 
 def format_resume_for_ai(

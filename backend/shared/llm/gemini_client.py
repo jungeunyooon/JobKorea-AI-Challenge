@@ -62,10 +62,6 @@ class GeminiClient(LLMClient):
         except Exception as e:
             raise Exception(f"Gemini API streaming failed: {e}")
         
-        # 구현 예시:
-        # async for chunk in self._llm.astream(prompt, **kwargs):
-        #     yield getattr(chunk, "content", str(chunk))
-    
     def with_options(self, **opts) -> "GeminiClient":
         """옵션을 변경한 새로운 Gemini 클라이언트 인스턴스 반환"""
         merged = {**self._opts, **opts}

@@ -3,7 +3,6 @@ Resume Service API 라우트 - Resume 관련 기능만 담당
 """
 
 from fastapi import APIRouter, HTTPException
-from typing import List
 from datetime import datetime
 from .schemas import ResumeCreate, ResumeResponse
 from .crud import (

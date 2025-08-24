@@ -3,7 +3,6 @@ Interview 마이크로서비스 메인 애플리케이션
 """
 
 from fastapi import FastAPI
-from fastapi.staticfiles import StaticFiles
 from fastapi.responses import FileResponse
 from contextlib import asynccontextmanager
 import os

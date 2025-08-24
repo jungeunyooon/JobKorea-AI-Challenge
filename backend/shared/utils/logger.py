@@ -4,7 +4,6 @@
 
 import logging
 import sys
-from typing import Optional
 
 def setup_logger(service_name: str, log_level: str = "INFO") -> logging.Logger:
     """서비스별 표준화된 로거 설정"""

@@ -59,10 +59,7 @@ class ClaudeClient(LLMClient):
                     yield str(chunk)
         except Exception as e:
             raise Exception(f"Claude API streaming failed: {e}")
-        
-        # 구현 예시:
-        # async for chunk in self._llm.astream(prompt, **kwargs):
-        #     yield getattr(chunk, "content", str(chunk))
+
     
     def with_options(self, **opts) -> "ClaudeClient":
         """옵션을 변경한 새로운 Claude 클라이언트 인스턴스 반환"""
