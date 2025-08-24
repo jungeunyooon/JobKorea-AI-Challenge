@@ -16,7 +16,7 @@
   - Resume API: http://api.localhost/api/v1/resumes/docs
   - Interview API: http://api.localhost/api/v1/interview/docs  
   - Learning API: http://api.localhost/api/v1/learning/docs
-  - 통합 테스트 페이지*: http://api.localhost/test
+  - 통합 테스트 페이지: http://api.localhost/test
   - Traefik Dashboard: http://localhost:8080
 
 ## 아키텍처 구성 요소
