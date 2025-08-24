@@ -25,7 +25,7 @@ class TestAppSettings(BaseSettings):
     
     # LLM 설정 (테스트용 더미 값)
     openai_api_key: str = os.environ.get("OPENAI_API_KEY", "test-openai-key")
-    openai_model: str = os.environ.get("OPENAI_MODEL", "gpt-3.5-turbo")
+    openai_model: str = os.environ.get("OPENAI_MODEL", "gpt-4.1")
     openai_temperature: float = float(os.environ.get("OPENAI_TEMPERATURE", "0.7"))
     openai_max_tokens: int = int(os.environ.get("OPENAI_MAX_TOKENS", "1000"))
     openai_timeout: int = int(os.environ.get("OPENAI_TIMEOUT", "30"))

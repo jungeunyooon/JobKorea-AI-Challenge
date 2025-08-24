@@ -121,7 +121,7 @@ def select_model(request_complexity):
     if complexity == "simple":
         return "gemini-1.5-flash"  # 무료
     elif complexity == "medium":
-        return "gpt-3.5-turbo"     # 저비용
+        return "gpt-4.1"     # 저비용
     else:
         return "claude-3-5-sonnet"  # 고품질
 ```

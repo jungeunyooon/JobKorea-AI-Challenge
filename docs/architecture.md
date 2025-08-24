@@ -23,7 +23,7 @@
 - **Collections**: resumes, interviews, learning_paths
 
 ### **AI 레이어**
-- **OpenAI GPT-3.5**: 빠르고 일관된 품질의 기본 모델
+- **OpenAI GPT-4.1**: 빠르고 일관된 품질의 기본 모델
 - **Claude 3.5 Sonnet**: 창의적이고 상세한 고품질 응답
 - **Gemini 1.5 Flash**: 무료 모델로 비용 최적화
 

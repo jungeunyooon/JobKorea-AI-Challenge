@@ -59,7 +59,7 @@ preferred_order = ["gemini", "openai", "claude"]
 - **추상화**: 다양한 LLM Provider 통합 인터페이스 (OpenAI, Claude, Gemini)
 - **메시지 체인**: SystemMessage + HumanMessage로 구조화된 프롬프트
 - **스트리밍**: 실시간 응답 스트리밍 지원 (`ainvoke`, `astream` 메소드)
-- **에러 핸들링**: Provider별 예외 처리 및 자동 재시도
+- **에러 핸들링**: 폴백 설정으로 LLM Provider 장애시에도 안정적으로 서비스 제공 가능
 - **비동기 처리**: async/await 패턴으로 동시 처리 최적화
 
 ## 설정 및 환경 변수
