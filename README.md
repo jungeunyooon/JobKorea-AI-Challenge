@@ -1,4 +1,6 @@
 # AI Challenge: 이력서 기반 맞춤형 커리어 코치 챗봇 API
+<img width="701" height="529" alt="image" src="https://github.com/user-attachments/assets/bfb8b9ea-be55-4065-8b4d-4f48039679fc" />
+
 
 구직자의 이력서를 분석하여 개인 맞춤형 면접 질문과 학습 경로를 제공하는 AI 기반 백엔드 서비스입니다.  
 ## 목차
